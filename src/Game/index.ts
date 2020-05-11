@@ -24,13 +24,26 @@ interface PlayerType {
     title: string;
     socket: Socket;
     role: PlayerRoleTypes;
+    secondCards: number;
+}
+
+enum CardTypes {
+    LeadCard,
+    SecondCard
+}
+interface Card {
+    type: CardTypes,
+    title: string,
+    content: string,
+    given: boolean
 }
 
 enum MessageTypes {
     Info = "message",
     Action = "action",
     Warn = "warn",
-    Error = "error"
+    Error = "error",
+    Card = "card"
 }
 
 interface MessageType {
@@ -50,6 +63,8 @@ export default class ConflictGame {
     private state: ConflictGameStates;
     private startPlayersLimit: number;
     private io: any;
+    private deck: Card[];
+    private cardsForRound: Card[];
 
     constructor({playersLimit, io}) {
         this.state = ConflictGameStates.Init;
@@ -80,7 +95,8 @@ export default class ConflictGame {
             id: uuidv4(), 
             title, 
             socket,
-            role: PlayerRoleTypes.Second
+            role: PlayerRoleTypes.Second,
+            secondCards: 0
         }
         console.log(`${chalk.black.bgGreen(" New player ")} title: ${title} - id: ${player.id}`);
 
@@ -149,7 +165,12 @@ export default class ConflictGame {
                 }
             case ConflictGameStates.Round: break;
             case ConflictGameStates.CardsGive: break;
-            case ConflictGameStates.CardsWaiting: break;
+            case ConflictGameStates.CardsWaiting: {
+                if (player.role === PlayerRoleTypes.Second) {
+                    player.secondCards--;
+                }
+                break;
+            }
             case ConflictGameStates.Desicion: break;
             case ConflictGameStates.Idle: break;
             default: ;
@@ -157,9 +178,115 @@ export default class ConflictGame {
     }
     
     startGame() {
-        this.gameStateChange(ConflictGameStates.WaitingForPlayers);
+        this.gameStateChange(ConflictGameStates.Start);
+        console.log("Game started");
+        this.players.sort((a,b) => {
+            return Math.random() > 0.5 ? 1 : -1;
+        });
+
+        this.loadDeck();
+
+        this.gameStateChange(ConflictGameStates.Round);
+        this.newRound();
     }
 
+    newRound() {
+        const indexOfPrevLeader = this.players.findIndex(player => player.role === PlayerRoleTypes.Leader);
+        if (indexOfPrevLeader !== -1) {
+            this.playerChangeStatus(this.players[indexOfPrevLeader], null, PlayerRoleTypes.Leader);
+        }
+
+        const indexOfLeader = indexOfPrevLeader === -1 || indexOfPrevLeader === this.players.length - 1 ? 0 : indexOfPrevLeader + 1;
+        this.playerChangeStatus(this.players[indexOfLeader], null, PlayerRoleTypes.Leader);
+        this.gameStateChange(ConflictGameStates.CardsGive);
+        this.cardsUpdate();
+        this.cardsGive();
+    }
+
+    cardsUpdate() {
+        this.players.forEach(player => {
+            while (player.secondCards < 5) {
+                let card = this.getSecondCard();
+                player.socket.emit(MessageTypes[MessageTypes.Card], JSON.stringify(card));
+                player.secondCards++;
+            }
+        })
+    }
+
+    getSecondCard(): Card {
+        return this.getCard(CardTypes.SecondCard)
+    }
+
+    getLeadCard(): Card {
+        return this.getCard(CardTypes.LeadCard)
+    }
+
+    getCard(type): Card {
+        let card = this.deck.find(card => {
+            return !card.given && card.type === type
+        })
+
+        if (!card) {
+            console.log("Something went wrong 2")
+        }
+
+        card.given = true;
+        return card;
+    }
+
+    cardsGive() {
+        const lead = this.players.find(player => player.role === PlayerRoleTypes.Leader);
+
+        if (!lead) {
+            console.log("Something went wrong 1")
+        }
+        const leadCard = this.getLeadCard();
+        const leadCardStr = JSON.stringify(leadCard)
+
+        const messageToLead = {
+            content: leadCardStr,
+            type: MessageTypes.Action
+        }
+
+        const messageToSecond = {
+            content: `Choose your card for ${leadCardStr}`,
+            type: MessageTypes.Action
+        }
+
+        this.broadcast(messageToLead, PlayerRoleTypes.Leader);
+        this.broadcast(messageToSecond, PlayerRoleTypes.Second);
+
+        this.gameStateChange(ConflictGameStates.CardsWaiting);
+    }
+
+    loadDeck() {
+
+        let deck: Card[] = []
+
+        for(let i=0; i < 20; i++) {
+            deck.push({
+                type: CardTypes.LeadCard,
+                content: `Lead card ${i}, could be image`,
+                title: `Lead card ${i}`,
+                given: false
+            })
+        }
+
+        for(let i=0; i < 100; i++) {
+            deck.push({
+                type: CardTypes.SecondCard,
+                content: `Second card ${i}, could be image`,
+                title: `Second card ${i}`,
+                given: false
+            })
+        }
+
+        deck.sort((a,b) => {
+            return Math.random() > 0.5 ? 1 : -1;
+        })
+
+        this.deck = deck;
+    }
 
 
 }
