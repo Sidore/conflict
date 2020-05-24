@@ -1,6 +1,7 @@
 import * as express from "express";
 import * as path from "path";
 import * as socketServer from "socket.io";
+import {ConflictGame, ConflictGameStates, PlayerMessageTypes} from "../Game";
 
 const extraPass = __dirname.indexOf("distServer") === -1 ? "../" : "";
 
@@ -26,33 +27,31 @@ const httpServer = server.listen(PORT, () => {
 })
 const io = socketServer(httpServer);
 
-const players = []
+const game = new ConflictGame({playersLimit: 4, io});
+
+game.gameStateChange(ConflictGameStates.WaitingForPlayers)
+// const players = []
 
 io.on("connection", (socket) => {
     let player;
-    socket.on("join", ({name}) => {
-        player = {
-            name,
-            
-        }
-
-        players.push(player)
-
-        
+    socket.on("Enter", ({name}) => {
+        player = game.addPlayer({ title: name, socket})
+        game.userAction(player,{
+            type: PlayerMessageTypes.Enter
+        })
     })
 
-    socket.on("start game", () => {
-        if (players.length < 4) { 
-            socket.emit("messege", `cant start, have to wait for other player, need at least ${4 - players.length}`)
-        } else {
-            io.emit("messege", `game is started by ${player.name}`)
-        }
+    socket.on("message", (message) => {
+        game.userAction(player,{
+            type: message.type,
+            content: message.content
+        })
     })
 
     socket.on('disconnect', (data) => {
-        let index = players.findIndex(p => p.id === player.id);
-        if(index !== -1) {
-            players.splice(index,1);
-        }   
+        // let index = players.findIndex(p => p.id === player.id);
+        // if(index !== -1) {
+        //     players.splice(index,1);
+        // }   
     });
 });

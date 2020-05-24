@@ -17,10 +17,13 @@ const dev = location && location.hostname == "localhost" || false;
 const serverUrl = dev ? "http://localhost:3333" : "";
 const socket = io(serverUrl);
 
-export default class App extends React.Component<{},{messages: string[]}> {
+export default class App extends React.Component<{},{messages: string[], userName: string, message: string, type: string}> {
 
 state = {
-    messages: []
+    messages: [],
+    userName: "",
+    message: "",
+    type: ""
 }
 
     constructor(props) {
@@ -30,15 +33,40 @@ state = {
     }
 
     componentDidMount() {
+
+        let user = `player-${Math.round(Math.random() * 1000)}`;
+        // alert(user)
+
+        this.setState({
+            ...this.state,
+            userName: user
+        })
         
-        socket.on("message", (data) => {
+        socket.on("Message", (data) => {
             this.setState({
-                messages : [...this.state.messages, data]
+                messages : [...this.state.messages, data],
             })
         })
 
-        socket.emit("join", {name : `player-${Math.round(Math.random() * 1000)}`});
+        socket.on("Action", (data) => {
+            this.setState({
+                messages : [...this.state.messages, data],
+            })
+        })
 
+        socket.emit("Enter", {name : user});
+
+    }
+
+    send(t?) {
+        if (t) {
+            socket.emit("message",{
+                type: 1
+            })
+        }else{
+            socket.emit(this.state.type, this.state.message);
+
+        }
     }
 
     
@@ -52,6 +80,30 @@ state = {
     //     </ApolloProvider>
     //   </Provider>
     <div>
+        {this.state.userName}
+
+        <div>
+            message <input type="text" name="" id="" onChange={(e) => this.setState({
+                ...this.state,
+                message: e.target.value
+            })}/> <br/>
+            type <input type="text" name="" id="" onChange={(e) => this.setState({
+                ...this.state,
+                type: e.target.value
+            })}/> <br/>
+            <button onClick={() => {
+                this.send();
+            }}>
+                send
+            </button>
+
+            <button onClick={() => {
+                this.send("start");
+            }}>
+                start game
+            </button>
+        </div>
+
         <ul>
             {this.state.messages.map((m,i) => {
             return (<li key={i}>{m}</li>)

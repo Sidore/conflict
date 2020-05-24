@@ -3,7 +3,7 @@ import * as chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
 
 
-enum ConflictGameStates {
+export enum ConflictGameStates {
     Init = 0,
     WaitingForPlayers = 1,
     Idle,
@@ -27,38 +27,38 @@ interface PlayerType {
     secondCards: number;
 }
 
-enum CardTypes {
+export enum CardTypes {
     LeadCard,
     SecondCard
 }
-interface Card {
+export interface Card {
     type: CardTypes,
     title: string,
     content: string,
     given: boolean
 }
 
-enum MessageTypes {
-    Info = "message",
-    Action = "action",
-    Warn = "warn",
-    Error = "error",
-    Card = "card"
+export enum MessageTypes {
+    Message = "Message",
+    Action = "Action",
+    Warn = "Action",
+    Error = "Error",
+    Card = "Card"
 }
 
-interface MessageType {
+export interface MessageType {
     content: string;
     type: MessageTypes
 }
 
-enum PlayerMessageTypes {
+export enum PlayerMessageTypes {
     Enter,
     Start,
     SecondCardPropose,
     FirstCardDecision
 }
 
-export default class ConflictGame {
+export class ConflictGame {
     private players: PlayerType[];
     private state: ConflictGameStates;
     private startPlayersLimit: number;
@@ -78,6 +78,9 @@ export default class ConflictGame {
         this.players.forEach((player) => {
             if ((role && player.role === role) || !role){
                 player.socket.emit(MessageTypes[message.type], message.content)
+                if(!role) {
+                    console.log("message to",player.title, message.type, MessageTypes[message.type])
+                }
             }
         });
     }
@@ -106,7 +109,11 @@ export default class ConflictGame {
     }
 
     playerChangeStatus(player?: PlayerType, id?, role?: PlayerRoleTypes) {
-        const finaleRole = role ? role : PlayerRoleTypes.Second;
+        console.log({
+            name: player.title,
+            role: player.role
+        },id,role)
+        const finaleRole = role === undefined ? role : PlayerRoleTypes.Second;
         if (player) {
             console.log(`Player ${player.title} is changing role ${chalk.black.bgBlue(PlayerRoleTypes[player.role])} --> ${chalk.black.bgBlue(PlayerRoleTypes[finaleRole])}`)
             player.role = finaleRole;
@@ -114,6 +121,7 @@ export default class ConflictGame {
             if (id) {
                 let p = this.players.find(p => p.id === id);
                 if (p) {
+                    console.log(`Player ${player.title} is changing role ${chalk.black.bgBlue(PlayerRoleTypes[player.role])} --> ${chalk.black.bgBlue(PlayerRoleTypes[finaleRole])}`)
                     player.role = finaleRole;
                 } else {
                     console.log(`${chalk.black.bgRed(" 404 ")} cannot find player with id ${id}`, this.players.map((pl => ({
@@ -140,22 +148,29 @@ export default class ConflictGame {
         this.state = state;
     }
 
-    userAction(player: PlayerType, action : {type: PlayerMessageTypes, content: string}) {
+    userAction(player: PlayerType, action: {type: PlayerMessageTypes, content?: string}) {
+        console.log("*** 1 ***")
         switch(this.state) {
             case ConflictGameStates.WaitingForPlayers: {
+                console.log("*** 2 ***", action)
                 const limitPassed = this.players.length >= this.startPlayersLimit
-                if (PlayerMessageTypes.Enter) {
+                if (action.type === PlayerMessageTypes.Enter) {
+                    console.log("*** 3 ***")
                     if (limitPassed) {
-                        this.broadcast({type: MessageTypes.Info, content: `Room is packed enough, can start after command`});
+                        console.log("*** 4 ***")
+                        this.broadcast({type: MessageTypes.Message, content: `Room is packed enough, can start after command`});
                     } else {
-                        this.broadcast({type: MessageTypes.Info, content: `Should wait for other player, need at least ${4 - this.players.length}`});
+                        console.log("*** 5 ***")
+                        this.broadcast({type: MessageTypes.Message, content: `Should wait for other player, need at least ${4 - this.players.length}`});
                     }
-                } else if(limitPassed){
+                } else if(action.type === PlayerMessageTypes.Start){
+                    console.log("*** 6 ***")
                     if (this.players.length >= this.startPlayersLimit) {
                         this.broadcast({type: MessageTypes.Action, content: `start`});
                         this.startGame();
                     } else {
-                        this.broadcast({type: MessageTypes.Info, content: `Cannot start now, should wait for other player, need at least ${4 - this.players.length}`});
+                        console.log("*** 7 ***")
+                        this.broadcast({type: MessageTypes.Message, content: `Cannot start now, should wait for other player, need at least ${4 - this.players.length}`});
                     }
                 }
             }
@@ -191,13 +206,19 @@ export default class ConflictGame {
     }
 
     newRound() {
+        console.log("&& 1 &&")
         const indexOfPrevLeader = this.players.findIndex(player => player.role === PlayerRoleTypes.Leader);
+        console.log("&& 2 &&", indexOfPrevLeader)
         if (indexOfPrevLeader !== -1) {
-            this.playerChangeStatus(this.players[indexOfPrevLeader], null, PlayerRoleTypes.Leader);
+            this.playerChangeStatus(this.players[indexOfPrevLeader], null, PlayerRoleTypes.Second);
         }
 
         const indexOfLeader = indexOfPrevLeader === -1 || indexOfPrevLeader === this.players.length - 1 ? 0 : indexOfPrevLeader + 1;
         this.playerChangeStatus(this.players[indexOfLeader], null, PlayerRoleTypes.Leader);
+        console.log("&& 3 &&", this.players.map((p) => ({
+            name: p.title,
+            role: p.role
+        })) )
         this.gameStateChange(ConflictGameStates.CardsGive);
         this.cardsUpdate();
         this.cardsGive();
@@ -252,6 +273,11 @@ export default class ConflictGame {
             content: `Choose your card for ${leadCardStr}`,
             type: MessageTypes.Action
         }
+
+        console.log(this.players.map((p) => ({
+            name: p.title,
+            role: p.role
+        })))
 
         this.broadcast(messageToLead, PlayerRoleTypes.Leader);
         this.broadcast(messageToSecond, PlayerRoleTypes.Second);
