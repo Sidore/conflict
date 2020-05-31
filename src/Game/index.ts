@@ -109,11 +109,19 @@ export class ConflictGame {
     }
 
     playerChangeStatus(player?: PlayerType, id?, role?: PlayerRoleTypes) {
+        
+        let finaleRole;
+        if (role === undefined) {
+            finaleRole = PlayerRoleTypes.Second
+        } else {
+            finaleRole = PlayerRoleTypes[PlayerRoleTypes[role]]
+        }
+
         console.log({
             name: player.title,
-            role: player.role
-        },id,role)
-        const finaleRole = role === undefined ? role : PlayerRoleTypes.Second;
+            role: player.role,
+            id,
+        },role,finaleRole,PlayerRoleTypes[role],  PlayerRoleTypes[player.role], PlayerRoleTypes[finaleRole])
         if (player) {
             console.log(`Player ${player.title} is changing role ${chalk.black.bgBlue(PlayerRoleTypes[player.role])} --> ${chalk.black.bgBlue(PlayerRoleTypes[finaleRole])}`)
             player.role = finaleRole;
@@ -214,8 +222,9 @@ export class ConflictGame {
         }
 
         const indexOfLeader = indexOfPrevLeader === -1 || indexOfPrevLeader === this.players.length - 1 ? 0 : indexOfPrevLeader + 1;
+        console.log("&& 3 &&", indexOfLeader)
         this.playerChangeStatus(this.players[indexOfLeader], null, PlayerRoleTypes.Leader);
-        console.log("&& 3 &&", this.players.map((p) => ({
+        console.log("&& 4 &&", this.players.map((p) => ({
             name: p.title,
             role: p.role
         })) )
