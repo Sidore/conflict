@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PlayerRoleTypes, ConflictGameStates, CardTypes } from "./../Game"
+import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes } from "./../Game"
 import io from 'socket.io-client';
 
 // import BaseLayout from "./BaseLayout";
@@ -34,7 +34,7 @@ state = {
     message: "",
     type: "",
     cards: [],
-    leadCard: { title: "", content: ""},
+    leadCard: { title: "", content: "", contentType: CardContentTypes.Text},
     action: 0,
     options: []
 }
@@ -67,9 +67,17 @@ state = {
                 let card = data;
                 additionData.leadCard = card;
                 if (this.state.player.role === PlayerRoleTypes.Leader) {
-                    output = `You got lead card - ${card.title} -> ${card.content}`
+                    if (card.contentType === CardContentTypes.Image) {
+                        output = `You got lead card - ${card.title}`;
+                    } else {
+                        output = `You got lead card - ${card.title} -> ${card.content}`;
+                    }
                 } else {
-                    output = `You should propose to - ${card.title} -> ${card.content}`
+                    if (card.contentType === CardContentTypes.Image) {
+                        output = `You should propose to - ${card.title}`;
+                    } else {
+                        output = `You should propose to - ${card.title} -> ${card.content}`
+                    }
                 }
             } else if (this.state.action === ConflictGameStates.CardsWaiting && this.state.player.role === PlayerRoleTypes.Leader) {
                 let options = data;
@@ -164,7 +172,7 @@ state = {
     <div>
   Name:{this.state.player.name} - Role:{PlayerRoleTypes[this.state.player.role]} - points: {this.state.player.points}/ Game state: {ConflictGameStates[this.state.action]}
 
-        <hr/>
+        
 
         <div>
             message <input type="text" name="" id="" onChange={(e) => this.setState({
@@ -174,42 +182,58 @@ state = {
             type <input type="text" name="" id="" onChange={(e) => this.setState({
                 ...this.state,
                 type: e.target.value
-            })}/> <br/>
+            })}/>
             <br/>
             <button onClick={() => {
                 this.send();
             }}>
                 send
-            </button><br/>
+            </button>
+        </div>
 
-            <button onClick={() => {
+        <hr/>
+
+        {ConflictGameStates.Init === this.state.action && <button className="startButton" onClick={() => {
                 this.send("start");
             }}>
                 start game
-            </button><br/>
-        </div>
-
-        <ul>
+            </button>}
+        <ul id="messages" className="block">
             {this.state.messages.map((m,i) => {
             return (<li key={i}>{m}</li>)
             })}
         </ul>
 
-        <ul>
+        <ul id="cards" className="block">
             {this.state.player.role !== PlayerRoleTypes.Leader && this.state.cards.map((m,i) => {
                 return (<li key={i}>{m.title} 
                 <button onClick={() => this.sendCard(m)}>send</button></li>)
             })}
         </ul>
 
-        {this.state.player.role === PlayerRoleTypes.Leader && <div>
+
+            {this.state.leadCard.title && <div id="leadCard" className="block">
+                
+                <h3>Title: {this.state.leadCard.title}</h3>
+
+                {this.state.leadCard.contentType === CardContentTypes.Text && <div>
+                        {this.state.leadCard.content}
+                    </div>}
+
+                    {this.state.leadCard.contentType === CardContentTypes.Image && <div>
+                       <img src={this.state.leadCard.content}/>
+                    </div>}    
+                
+                </div>}
+
+        {this.state.player.role === PlayerRoleTypes.Leader && <div className="block" id="options">
+            {/* <hr/> */}
             <h3>Options to chose</h3>
-            Lead card {this.state.leadCard.title} -> {this.state.leadCard.content}
-            <hr/>
+            
             chose your option:
             <ul>
                 {this.state.options.map((card) => {
-                return (<li onClick={() => this.sendCard(card)}>{card.title} -> {card.content}</li>)
+                return (<li>{card.title} -> {card.content} <button onClick={() => this.sendCard(card)}>send</button></li>)
                 })}
             </ul>
         </div>}

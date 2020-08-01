@@ -326,7 +326,7 @@ export class ConflictGame {
 
         let deck: Card[] = []
 
-        for(let i=0; i < 20; i++) {
+        for(let i=0; i < 10; i++) {
             deck.push({
                 type: CardTypes.LeadCard,
                 content: `Lead card ${i}, could be image`,
@@ -335,6 +335,19 @@ export class ConflictGame {
                 contentType: CardContentTypes.Text
             })
         }
+
+        for(let i=10; i < 20; i++) {
+            deck.push({
+                type: CardTypes.LeadCard,
+                content: `https://www.meme-arsenal.com/memes/d57849838dbdab4d17fb394e98f736f7.jpg`,
+                title: `Lead card ${i}`,
+                given: false,
+                contentType: CardContentTypes.Image
+            })
+        }
+
+
+        
 
         for(let i=0; i < 100; i++) {
             deck.push({
