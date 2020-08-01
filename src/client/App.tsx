@@ -1,6 +1,7 @@
 import * as React from "react";
-
+import { PlayerRoleTypes, ConflictGameStates, CardTypes } from "./../Game"
 import io from 'socket.io-client';
+
 // import BaseLayout from "./BaseLayout";
 // import ApolloClient from "apollo-boost";
 // import { ApolloProvider } from "react-apollo";
@@ -17,19 +18,29 @@ const dev = location && location.hostname == "localhost" || false;
 const serverUrl = dev ? "http://localhost:3333" : "";
 const socket = io(serverUrl);
 
-export default class App extends React.Component<{},{messages: string[], userName: string, message: string, type: string}> {
+export default class App extends React.Component<{},
+{messages: string[], 
+    player: any, 
+    message: string, 
+    type: string, 
+    cards: any[], 
+    action: number
+    leadCard: any,
+    options: any[]}> {
 
 state = {
     messages: [],
-    userName: "",
+    player: { name: "", points: 0, role: 1},
     message: "",
-    type: ""
+    type: "",
+    cards: [],
+    leadCard: { title: "", content: ""},
+    action: 0,
+    options: []
 }
 
     constructor(props) {
         super(props);
-        
-        
     }
 
     componentDidMount() {
@@ -39,18 +50,66 @@ state = {
 
         this.setState({
             ...this.state,
-            userName: user
+            player: {
+                ...this.state.player,
+                name: user
+            }
         })
         
         socket.on("Message", (data) => {
+
+            let output = data;
+            let additionData:any = {}
+
+            console.log(ConflictGameStates[this.state.action], this.state.action, data)
+
+            if (this.state.action === ConflictGameStates.CardsGive) {
+                let card = data;
+                additionData.leadCard = card;
+                if (this.state.player.role === PlayerRoleTypes.Leader) {
+                    output = `You got lead card - ${card.title} -> ${card.content}`
+                } else {
+                    output = `You should propose to - ${card.title} -> ${card.content}`
+                }
+            } else if (this.state.action === ConflictGameStates.CardsWaiting && this.state.player.role === PlayerRoleTypes.Leader) {
+                let options = data;
+                additionData.options = options;
+                output = "Chose card for answer"
+            }
+
             this.setState({
-                messages : [...this.state.messages, data],
+                ...this.state,
+                messages : [...this.state.messages, output],
+                ...additionData
             })
         })
 
         socket.on("Action", (data) => {
             this.setState({
-                messages : [...this.state.messages, data],
+                ...this.state,
+                action : +data,
+            })
+        })
+
+        socket.on("Sync", (data) => {
+            console.log("sync", data,this.state.player, {
+                ...this.state.player,
+                ...data
+            })
+            this.setState({
+                ...this.state,
+                player: {
+                    ...this.state.player,
+                    ...data
+                }
+            })
+        })
+
+        socket.on("Card", (data) => {
+            this.setState({
+                ...this.state,
+                cards : [...this.state.cards, data],
+
             })
         })
 
@@ -64,13 +123,36 @@ state = {
                 type: 1
             })
         }else{
-            socket.emit(this.state.type, this.state.message);
+            socket.emit("message", {
+                type: this.state.type || 1,
+                content: this.state.message
+            });
 
+        }
+    }
+
+    sendCard(card) {
+        socket.emit("message", {
+            type: 1,
+            content: card
+        });
+        
+        if (card.type === CardTypes.LeadCard) {
+
+
+        } else if (card.type === CardTypes.SecondCard) {
+            this.setState({
+                ...this.state,
+                messages : [...this.state.messages, `You propose ${card.title} -> ${card.content}`],
+                cards: this.state.cards.filter(c => c.title !== card.title)
+            })
         }
     }
 
     
   render() {
+
+    console.log(this.state)
     return (
     //   <Provider store={store}>
     //     <ApolloProvider client={client}>
@@ -80,7 +162,9 @@ state = {
     //     </ApolloProvider>
     //   </Provider>
     <div>
-        {this.state.userName}
+  Name:{this.state.player.name} - Role:{PlayerRoleTypes[this.state.player.role]} - points: {this.state.player.points}/ Game state: {ConflictGameStates[this.state.action]}
+
+        <hr/>
 
         <div>
             message <input type="text" name="" id="" onChange={(e) => this.setState({
@@ -91,17 +175,18 @@ state = {
                 ...this.state,
                 type: e.target.value
             })}/> <br/>
+            <br/>
             <button onClick={() => {
                 this.send();
             }}>
                 send
-            </button>
+            </button><br/>
 
             <button onClick={() => {
                 this.send("start");
             }}>
                 start game
-            </button>
+            </button><br/>
         </div>
 
         <ul>
@@ -109,6 +194,25 @@ state = {
             return (<li key={i}>{m}</li>)
             })}
         </ul>
+
+        <ul>
+            {this.state.player.role !== PlayerRoleTypes.Leader && this.state.cards.map((m,i) => {
+                return (<li key={i}>{m.title} 
+                <button onClick={() => this.sendCard(m)}>send</button></li>)
+            })}
+        </ul>
+
+        {this.state.player.role === PlayerRoleTypes.Leader && <div>
+            <h3>Options to chose</h3>
+            Lead card {this.state.leadCard.title} -> {this.state.leadCard.content}
+            <hr/>
+            chose your option:
+            <ul>
+                {this.state.options.map((card) => {
+                return (<li onClick={() => this.sendCard(card)}>{card.title} -> {card.content}</li>)
+                })}
+            </ul>
+        </div>}
     </div>
     );
   }
