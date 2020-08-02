@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./distServer/index.js",
+    "start": "node ./distServer/server/index.js",
     "server": "ts-node ./src/server/index.ts",
     "dev": "nodemon --watch",
     "client": "parcel src/client/index.html",
