@@ -12,6 +12,7 @@
     "exclude": [
         "src/client/**",
         "src/tests/**",
+        "src/Game/**",
         "e2e"
     ]
     // "strict": true,
