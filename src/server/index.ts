@@ -2,6 +2,8 @@ import * as express from "express";
 import * as path from "path";
 import * as socketServer from "socket.io";
 import {ConflictGame, ConflictGameStates, PlayerMessageTypes} from "../Game";
+// const { ExpressPeerServer } = require('peer');
+// import {ExpressPeerServer} from "peer";
 
 const extraPass = __dirname.indexOf("distServer") === -1 ? "../" : "";
 
@@ -25,7 +27,23 @@ const PORT = process.env.PORT || 3333;
 const httpServer = server.listen(PORT, () => {
     console.log("run on port " + PORT)
 })
-const io = socketServer(httpServer);
+
+
+// const peerServer = ExpressPeerServer(httpServer, {
+//     // @ts-ignore
+//     // debug: true,
+//     port: 3001,
+//     path: "myapp",
+//     // key: "peerjs"
+//   });
+  const io = socketServer(httpServer);
+
+  
+// @ts-ignore
+// server.use('/peerjs', peerServer);
+
+// console.log(peerServer);
+
 
 const game = new ConflictGame({playersLimit: 4, io});
 
@@ -54,4 +72,12 @@ io.on("connection", (socket) => {
         //     players.splice(index,1);
         // }   
     });
+
+    socket.on('join-room', (userId) => {
+        io.emit('user-connected', userId)
+    
+        socket.on('disconnect', () => {
+          io.emit('user-disconnected', userId)
+        })
+      })
 });

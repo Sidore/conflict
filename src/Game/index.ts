@@ -323,46 +323,131 @@ export class ConflictGame {
     }
 
     loadDeck() {
-
         let deck: Card[] = []
+        // for(let i=0; i < 10; i++) {
+        //     deck.push({
+        //         type: CardTypes.LeadCard,
+        //         content: `Lead card ${i}, could be image`,
+        //         title: `Lead card ${i}`,
+        //         given: false,
+        //         contentType: CardContentTypes.Text
+        //     })
+        // }
+        // for(let i=10; i < 20; i++) {
+        //     deck.push({
+        //         type: CardTypes.LeadCard,
+        //         content: `https://www.meme-arsenal.com/memes/d57849838dbdab4d17fb394e98f736f7.jpg`,
+        //         title: `Lead card ${i}`,
+        //         given: false,
+        //         contentType: CardContentTypes.Image
+        //     })
+        // }
+        // for(let i=0; i < 100; i++) {
+        //     deck.push({
+        //         type: CardTypes.SecondCard,
+        //         content: `Second card ${i}, could be image`,
+        //         title: `Second card ${i}`,
+        //         given: false,
+        //         contentType: CardContentTypes.Text
+        //     })
+        // }
 
-        for(let i=0; i < 10; i++) {
-            deck.push({
-                type: CardTypes.LeadCard,
-                content: `Lead card ${i}, could be image`,
-                title: `Lead card ${i}`,
-                given: false,
-                contentType: CardContentTypes.Text
-            })
-        }
+        const memLinks = [
+            "http://risovach.ru/upload/2016/10/generator/mister-dudec_126443897_orig_.jpg",
+            "http://risovach.ru/upload/2018/09/generator/ilon-mask_188128557_orig_.jpg",
+            "http://risovach.ru/upload/2017/07/generator/tak-blet_150671298_orig_.jpg",
+            "http://risovach.ru/upload/2017/04/generator/otchayannyy-agutin_142439306_orig_.jpg",
+            "http://risovach.ru/upload/2017/02/generator/ne-delay-ne-budet_137790949_orig_.jpg",
+            "http://risovach.ru/upload/2017/01/generator/zhdun_135846781_orig_.jpg",
+            "http://risovach.ru/upload/2016/12/generator/test_131710210_orig_.jpg",
+            "http://risovach.ru/upload/2016/08/generator/bettingmemes_122374635_orig_.jpg",
+            "http://risovach.ru/upload/2016/08/generator/boloto_121092625_orig_.jpg",
+            "http://risovach.ru/upload/2016/05/generator/lapsha-na-ushah_115111151_orig_.jpg",
+            "http://risovach.ru/upload/2016/02/generator/a_106977909_orig_.jpg",
+            "http://risovach.ru/upload/2016/02/generator/it_105972405_orig_.jpg",
+            "http://risovach.ru/upload/2015/09/generator/gordyy-volk_92577789_orig_.jpg",
+            "http://risovach.ru/upload/2015/09/generator/gordyy-kozlenok_93344369_orig_.jpg",
+            "http://risovach.ru/upload/2015/07/generator/ispanec_87230121_orig_.jpg",
+            "http://risovach.ru/upload/2015/05/generator/ty-vtiraesh-mne-kakuyu-to-dich_81670077_orig_.png",
+            "http://risovach.ru/upload/2015/01/generator/pacan-s-krestom_72785715_orig_.jpg",
+            "http://risovach.ru/upload/2014/12/generator/nedovolnyy-pacan_70086754_orig_.jpg",
+            "http://risovach.ru/upload/2014/11/generator/babka_67536985_orig_.jpg",
+            "http://risovach.ru/upload/2014/06/generator/klichno_53903380_orig_.jpeg",
+            "http://risovach.ru/upload/2014/05/generator/priv-che-delaesh_50224690_orig_.jpeg",
+            "http://risovach.ru/upload/2014/04/generator/tipichnyy-shkolnik_47290141_orig_.jpeg",
+            "http://risovach.ru/upload/2014/02/generator/f_43223693_orig_.jpeg",
+            "http://risovach.ru/upload/2013/11/generator/devochka_34611117_orig_.jpeg",
+            "http://risovach.ru/upload/2013/08/generator/vava_26332403_orig_.jpeg",
+            "http://risovach.ru/upload/2013/07/generator/a-teper-predstav_25642532_orig_.jpeg",
+            "http://risovach.ru/upload/2013/07/generator/argumentnyy-argument_25271036_orig_.jpeg",
+            "http://risovach.ru/upload/2013/06/generator/griffiny--blyuyut_21655737_orig_.jpeg",
+            "http://risovach.ru/upload/2013/05/generator/rendi-marsh_19301154_orig_.jpeg",
+            "http://risovach.ru/upload/2013/05/generator/grustnyy-kot_18951056_orig_.jpeg",
+            "http://risovach.ru/upload/2013/05/generator/nihuyase_18514232_orig_.jpeg",
+            "http://risovach.ru/upload/2013/05/generator/begite-glupcy_17854385_orig_.jpeg",
+            "http://risovach.ru/upload/2013/03/generator/neudachnik-brayan_13472431_orig_.jpeg",
+            "http://risovach.ru/upload/2013/03/generator/ebat-ty-loh_13428261_orig_.jpeg",
+            "http://risovach.ru/upload/2013/03/generator/ustanavlivat-igry_13283214_orig_.jpeg",
+            "http://risovach.ru/upload/2013/03/generator/tvoe-vyrazhenie-lica_12772866_orig_.jpeg",
+            "http://risovach.ru/upload/2013/02/generator/tom-kruz_10177851_orig_.jpeg",
+            "http://risovach.ru/upload/2013/01/generator/nu-davay-taya-rasskazhi-kak-ty-men_10074996_orig_.jpeg",
+            "http://risovach.ru/upload/2013/01/generator/voenkom_9566643_orig_.jpeg",
+            "http://risovach.ru/upload/2012/12/generator/chyo_7217242_orig_.jpeg",
+            "http://risovach.ru/upload/2012/12/generator/vot-eto-povorot_6883919_orig_.jpeg",
+            "http://risovach.ru/upload/2012/12/generator/toni-stark_4945663_orig_.jpeg",
+            "http://risovach.ru/upload/2012/11/templ_1352053367_orig_A-chto-esli.jpg",
+            "http://risovach.ru/upload/2012/hand/nelzya-prosto-tak-vzyat-i_orig_.jpg",
+            "http://risovach.ru/upload/2012/03/templ_1333113067_orig_Fraj.jpg"
+        ]
 
-        for(let i=10; i < 20; i++) {
-            deck.push({
-                type: CardTypes.LeadCard,
-                content: `https://www.meme-arsenal.com/memes/d57849838dbdab4d17fb394e98f736f7.jpg`,
-                title: `Lead card ${i}`,
-                given: false,
-                contentType: CardContentTypes.Image
-            })
-        }
+        const jokes = [
+            "Когда ударил волейбольный мяч ногой - физрук",
+            "Когда, что много мемов ассоциируют с тобой, но все они про лишний вес, алкоголизм и одиночество",
+            "Когда забыл очистить историю браузера и мама нажимаем П",
+            "Когда заходишь с нового устройства - гугл",
+            "Когда решил быкануть на пьяного батю",
+            "Когда спрашивают почему ты не замужем, а тебе некогда - 5 котов сами себя не покормят",
+            "Когда набираешь 20кг для роли, а тебе говорят что никакой ты не актер",
+            "Когда сломал вещь и починил ее так чтобы следующий человек подумал что это он ее сломал",
+            "Когда твой друг дебил проколол все твои презервативы, но все закончилось что его девушка беременна",
+            "Твое лицо, когда детский бассейн у соседей - единственное море, которое тебе светит в этом году",
+            "Когда ждешь 00:01 первого января чтобы начать шутить про прошлогодний хлеб",
+            "Твое лицо когда тебе уже 30, а на кассе просят паспорт",
+            "Когда попался таксист, который ехал всю дорогу молча",
+            "Когда понимаешь, что книги - это мертвые деревья с татуировками",
+            "Когда хотел вытереть девушке слезы, но случайно стер ее бровь",
+            "Когда не знаешь слиется ли твой друг или у него приступ астмы",
+            "Когда стал ногой на Лего",
+            "Когда на ночь наелся арбуза, и ночью приснилось, что ты капитан корабля который попал в шторм",
+            "Когда в сериале убили твое любимого персонажа, и тебе больше нет смысла его смотреть",
+            "Когда открываешь окно чтобы немного проветрить - все остальные на космической станции",
+            "Когда пытаешься лечь пораньше, но друзья и пивко думают иначе",
+            "Когда закрыл глаза на 5 минут почле будильника, а проснулся через 30 лет женат, с двумя детьми и собакой"
+        ]
 
+        for(let i=0; i < memLinks.length; i++) {
+                deck.push({
+                    type: CardTypes.LeadCard,
+                    content: memLinks[i],
+                    title: `Lead card ${i}`,
+                    given: false,
+                    contentType: CardContentTypes.Image
+                })
+            }
 
-        
-
-        for(let i=0; i < 100; i++) {
-            deck.push({
-                type: CardTypes.SecondCard,
-                content: `Second card ${i}, could be image`,
-                title: `Second card ${i}`,
-                given: false,
-                contentType: CardContentTypes.Text
-            })
-        }
+            for(let i=0; i < jokes.length * 2; i++) {
+                    deck.push({
+                        type: CardTypes.SecondCard,
+                        content: jokes[i % jokes.length],
+                        title: `Second card ${i}`,
+                        given: false,
+                        contentType: CardContentTypes.Text
+                    })
+                }
 
         deck.sort((a,b) => {
             return Math.random() > 0.5 ? 1 : -1;
         })
-
         this.deck = deck;
     }
 

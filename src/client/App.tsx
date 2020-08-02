@@ -1,7 +1,8 @@
 import * as React from "react";
 import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes } from "./../Game"
 import io from 'socket.io-client';
-
+import "./style.scss";
+import Peer from 'peerjs';
 // import BaseLayout from "./BaseLayout";
 // import ApolloClient from "apollo-boost";
 // import { ApolloProvider } from "react-apollo";
@@ -17,6 +18,27 @@ import io from 'socket.io-client';
 const dev = location && location.hostname == "localhost" || false;
 const serverUrl = dev ? "http://localhost:3333" : "";
 const socket = io(serverUrl);
+const myPeer = new Peer(undefined, 
+//     {
+//     host: location.hostname,
+//       port: 3000,
+//       path: 'myapp',
+//     //   key: ""
+//   }
+  )
+
+
+  console.log(myPeer)
+
+  myPeer.on('connection', (conn) => {
+    conn.on('data', (data) => {
+      // Will print 'hi!'
+      console.log(data);
+    });
+    conn.on('open', () => {
+      conn.send('hello!');
+    });
+  });
 
 export default class App extends React.Component<{},
 {messages: string[], 
@@ -123,6 +145,58 @@ state = {
 
         socket.emit("Enter", {name : user});
 
+        const myVideo = document.createElement('video')
+myVideo.muted = true
+const peers = {}
+const videoGrid = document.getElementById('video-grid')
+navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  }).then(stream => {
+    addVideoStream(myVideo, stream)
+  
+    myPeer.on('call', call => {
+      call.answer(stream)
+      const video = document.createElement('video')
+      call.on('stream', userVideoStream => {
+        addVideoStream(video, userVideoStream)
+      })
+    })
+  
+    socket.on('user-connected', userId => {
+      connectToNewUser(userId, stream)
+    })
+  })
+  
+  socket.on('user-disconnected', userId => {
+    if (peers[userId]) peers[userId].close()
+  })
+  
+  myPeer.on('open', id => {
+    socket.emit('join-room', id)
+  })
+  
+  function connectToNewUser(userId, stream) {
+    const call = myPeer.call(userId, stream)
+    const video = document.createElement('video')
+    call.on('stream', userVideoStream => {
+      addVideoStream(video, userVideoStream)
+    })
+    call.on('close', () => {
+      video.remove()
+    })
+  
+    peers[userId] = call
+  }
+  
+  function addVideoStream(video, stream) {
+    video.srcObject = stream
+    video.addEventListener('loadedmetadata', () => {
+      video.play()
+    })
+    videoGrid.append(video)
+  }
+
     }
 
     send(t?) {
@@ -157,86 +231,108 @@ state = {
         }
     }
 
-    
-  render() {
-
-    console.log(this.state)
-    return (
-    //   <Provider store={store}>
+        //   <Provider store={store}>
     //     <ApolloProvider client={client}>
     //       <Router>
     //         <BaseLayout />
     //       </Router>
     //     </ApolloProvider>
     //   </Provider>
-    <div>
-  Name:{this.state.player.name} - Role:{PlayerRoleTypes[this.state.player.role]} - points: {this.state.player.points}/ Game state: {ConflictGameStates[this.state.action]}
+    
+  render() {
 
-        
+    console.log(this.state)
+    return ( 
 
-        <div>
-            message <input type="text" name="" id="" onChange={(e) => this.setState({
-                ...this.state,
-                message: e.target.value
-            })}/> <br/>
-            type <input type="text" name="" id="" onChange={(e) => this.setState({
-                ...this.state,
-                type: e.target.value
-            })}/>
+    <div className="col root">
+        <div className="container row block">
+            Name: <b>{this.state.player.name}</b> / Role:<b>{PlayerRoleTypes[this.state.player.role]}</b> / points: <b>{this.state.player.points}</b> / Game state: <b>{ConflictGameStates[this.state.action]}</b>
             <br/>
-            <button onClick={() => {
-                this.send();
-            }}>
-                send
-            </button>
+            <div id="video-grid"></div>
+            {/* <div >
+                message <input type="text" name="" id="" onChange={(e) => this.setState({
+                    ...this.state,
+                    message: e.target.value
+                })}/> <br/>
+                type <input type="text" name="" id="" onChange={(e) => this.setState({
+                    ...this.state,
+                    type: e.target.value
+                })}/>
+                <br/>
+                <button onClick={() => {
+                    this.send();
+                }}>
+                    send
+                </button>
+            </div> */}
         </div>
 
-        <hr/>
+    
+        {ConflictGameStates.Init === this.state.action && 
+        <div className="container row block">
+            <button className="startButton" onClick={() => {
+                    this.send("start");
+                }}>
+                    start game
+            </button>
+        </div>}
+    
+    <div className="container row">
+        <div id="messages" className="block col">
+            <p>Messages:</p>
+            <hr/>
+            <ul className="col">
+                {this.state.messages.map((m,i) => {
+                return (<li key={i}>{m}</li>)
+                })}
+            </ul>
+        </div>
+        
 
-        {ConflictGameStates.Init === this.state.action && <button className="startButton" onClick={() => {
-                this.send("start");
-            }}>
-                start game
-            </button>}
-        <ul id="messages" className="block">
-            {this.state.messages.map((m,i) => {
-            return (<li key={i}>{m}</li>)
-            })}
-        </ul>
+        {this.state.player.role !== PlayerRoleTypes.Leader && <div id="cards" className="block col">
+            <p>Your cards:</p>
+            <hr/>
+            <ul className="col">
+                {this.state.cards.map((m,i) => {
+                    return (<li key={i}>{m.content} 
+                                <button onClick={() => this.sendCard(m)}>send</button>
+                            </li>)
+                })}
+            </ul>
+        </div>}
+         
+        </div>
 
-        <ul id="cards" className="block">
-            {this.state.player.role !== PlayerRoleTypes.Leader && this.state.cards.map((m,i) => {
-                return (<li key={i}>{m.title} 
-                <button onClick={() => this.sendCard(m)}>send</button></li>)
-            })}
-        </ul>
-
-
-            {this.state.leadCard.title && <div id="leadCard" className="block">
+        <div className="container row">
+        {this.state.leadCard.title && <div id="leadCard" className="block col">
                 
-                <h3>Title: {this.state.leadCard.title}</h3>
+                <p>Title: {this.state.leadCard.title}</p>
 
                 {this.state.leadCard.contentType === CardContentTypes.Text && <div>
                         {this.state.leadCard.content}
                     </div>}
 
                     {this.state.leadCard.contentType === CardContentTypes.Image && <div>
-                       <img src={this.state.leadCard.content}/>
+                       <img className="cardImage" src={this.state.leadCard.content}/>
                     </div>}    
                 
                 </div>}
 
-        {this.state.player.role === PlayerRoleTypes.Leader && <div className="block" id="options">
-            {/* <hr/> */}
-            <h3>Options to chose</h3>
-            
-            chose your option:
-            <ul>
-                {this.state.options.map((card) => {
-                return (<li>{card.title} -> {card.content} <button onClick={() => this.sendCard(card)}>send</button></li>)
-                })}
-            </ul>
-        </div>}
+                {this.state.player.role === PlayerRoleTypes.Leader && <div className="block col" id="options">
+                    
+                    <p>Options to chose:</p>
+                    <hr/>
+                    <ul>
+                        {this.state.options.map((card) => {
+                        return (<li>{card.title} -> {card.content} <button onClick={() => this.sendCard(card)}>send</button></li>)
+                        })}
+                    </ul>
+                    {
+                        this.state.options.length === 0 && <p>Waiting for options from other players</p>
+                    }
+                </div>}
+
+        </div>
     </div>
     );
   }
