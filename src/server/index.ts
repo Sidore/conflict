@@ -5,7 +5,7 @@ import {ConflictGame, ConflictGameStates, PlayerMessageTypes} from "../Game";
 // const { ExpressPeerServer } = require('peer');
 // import {ExpressPeerServer} from "peer";
 
-const extraPass = __dirname.indexOf("distServer") === -1 ? "../../" : "";
+const extraPass = __dirname.indexOf("distServer") === -1 ? "../" : "../";
 
 const server = express();
 server.use(express.json());
