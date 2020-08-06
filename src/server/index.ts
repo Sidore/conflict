@@ -73,11 +73,11 @@ io.on("connection", (socket) => {
         // }   
     });
 
-    socket.on('join-room', (userId) => {
-        io.emit('user-connected', userId)
+    socket.on('join-room', (userObj) => {
+        io.emit('user-connected', userObj)
     
         socket.on('disconnect', () => {
-          io.emit('user-disconnected', userId)
+          io.emit('user-disconnected', userObj)
         })
       })
 });

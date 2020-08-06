@@ -3,6 +3,7 @@ import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes } from
 import io from 'socket.io-client';
 import "./style.scss";
 import Peer from 'peerjs';
+import { useRef } from "react";
 // import BaseLayout from "./BaseLayout";
 // import ApolloClient from "apollo-boost";
 // import { ApolloProvider } from "react-apollo";
@@ -27,19 +28,6 @@ const myPeer = new Peer(undefined,
 //   }
   )
 
-
-  console.log(myPeer)
-
-  myPeer.on('connection', (conn) => {
-    conn.on('data', (data) => {
-      // Will print 'hi!'
-      console.log(data);
-    });
-    conn.on('open', () => {
-      conn.send('hello!');
-    });
-  });
-
 export default class App extends React.Component<{},
 {messages: string[], 
     player: any, 
@@ -48,7 +36,9 @@ export default class App extends React.Component<{},
     cards: any[], 
     action: number
     leadCard: any,
-    options: any[]}> {
+    options: any[],
+    cameras: any[]
+}> {
 
 state = {
     messages: [],
@@ -58,7 +48,8 @@ state = {
     cards: [],
     leadCard: { title: "", content: "", contentType: CardContentTypes.Text},
     action: 0,
-    options: []
+    options: [],
+    cameras: []
 }
 
     constructor(props) {
@@ -66,10 +57,7 @@ state = {
     }
 
     componentDidMount() {
-
         let user = `player-${Math.round(Math.random() * 1000)}`;
-        // alert(user)
-
         this.setState({
             ...this.state,
             player: {
@@ -77,7 +65,6 @@ state = {
                 name: user
             }
         })
-        
         socket.on("Message", (data) => {
 
             let output = data;
@@ -113,14 +100,12 @@ state = {
                 ...additionData
             })
         })
-
         socket.on("Action", (data) => {
             this.setState({
                 ...this.state,
                 action : +data,
             })
         })
-
         socket.on("Sync", (data) => {
             console.log("sync", data,this.state.player, {
                 ...this.state.player,
@@ -134,7 +119,6 @@ state = {
                 }
             })
         })
-
         socket.on("Card", (data) => {
             this.setState({
                 ...this.state,
@@ -142,59 +126,98 @@ state = {
 
             })
         })
-
         socket.emit("Enter", {name : user});
+        const peers = {}
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+        }).then(stream => {
+            addVideoStream(stream, this.state.player.name)
+        
+            myPeer.on('call', call => {
+                call.answer(stream)
+                call.on('stream', userVideoStream => {
 
-        const myVideo = document.createElement('video')
-myVideo.muted = true
-const peers = {}
-const videoGrid = document.getElementById('video-grid')
-navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true
-  }).then(stream => {
-    addVideoStream(myVideo, stream)
+                    const peersObject: any = Object.values(peers).find((v:any, index) => {
+                        console.log(index,v.call.peer, call.peer, v.call.peer === call.peer);
+                        return v.call.peer === call.peer;
+                    }) 
+
+                    
+                    addVideoStream(userVideoStream, peersObject && peersObject.user)
+                })
+            })
   
-    myPeer.on('call', call => {
-      call.answer(stream)
-      const video = document.createElement('video')
-      call.on('stream', userVideoStream => {
-        addVideoStream(video, userVideoStream)
-      })
-    })
-  
-    socket.on('user-connected', userId => {
-      connectToNewUser(userId, stream)
+    socket.on('user-connected', user => {
+      connectToNewUser(user, stream)
     })
   })
   
   socket.on('user-disconnected', userId => {
-    if (peers[userId]) peers[userId].close()
+    if (peers[userId]) {
+        peers[userId].call.close();
+        console.log(`User ${peers[userId].user} diconnected`)
+
+        this.setState({
+            ...this.state,
+            cameras: this.state.cameras.filter(c => c.name !== peers[userId].user)
+        })
+    }
+
   })
   
   myPeer.on('open', id => {
-    socket.emit('join-room', id)
+    socket.emit('join-room', {id, user})
   })
   
-  function connectToNewUser(userId, stream) {
+  const connectToNewUser = ({id: userId, user}, stream) => {
     const call = myPeer.call(userId, stream)
-    const video = document.createElement('video')
+    let video = null;
     call.on('stream', userVideoStream => {
-      addVideoStream(video, userVideoStream)
+        // console.log("lol kek", name)
+        video = addVideoStream(userVideoStream, user);
     })
     call.on('close', () => {
-      video.remove()
+    //   video || video.ref.current.remove();
+      this.setState({
+          ...this.state,
+          ...this.state.cameras.filter(c => c !== video)
+      })
     })
   
-    peers[userId] = call
+    peers[userId] = {call, user}
   }
   
-  function addVideoStream(video, stream) {
-    video.srcObject = stream
-    video.addEventListener('loadedmetadata', () => {
-      video.play()
+  const addVideoStream = (stream, name) => {
+    // const video = document.createElement("video");
+
+    let buff;
+
+
+    if (buff = this.state.cameras.find(c => {
+        return c.srcObject.id === stream.id;
+    })) {
+        // console.log('attepmt to add camera again');
+        buff.name = name;
+        return;
+    }
+
+    // console.log(peers, stream)
+    const video:any = {};
+    video.ref = React.createRef();
+    video.srcObject = stream;
+    video.name = name;
+    // video.addEventListener('loadedmetadata', () => {
+    //   video.play()
+    // })
+
+    this.setState({
+        ...this.state,
+        cameras: [...this.state.cameras, video]
     })
-    videoGrid.append(video)
+
+    return video;
+    // videoGrid.append(video)
   }
 
     }
@@ -241,14 +264,33 @@ navigator.mediaDevices.getUserMedia({
     
   render() {
 
-    console.log(this.state)
+    // console.log(this.state)
     return ( 
 
     <div className="col root">
-        <div className="container row block">
-            Name: <b>{this.state.player.name}</b> / Role:<b>{PlayerRoleTypes[this.state.player.role]}</b> / points: <b>{this.state.player.points}</b> / Game state: <b>{ConflictGameStates[this.state.action]}</b>
-            <br/>
-            <div id="video-grid"></div>
+        <div className="container row ">
+            <div className="block col">
+                <p>Player info:</p>
+                <hr/>
+                Name: <b>{this.state.player.name}</b> <br/>
+                Role:<b>{PlayerRoleTypes[this.state.player.role]}</b> <br/>
+                points: <b>{this.state.player.points}</b> <br/>
+                Game state: <b>{ConflictGameStates[this.state.action]}</b>
+            </div>
+            <div className="block col" >
+                <p>Player's cameras</p>
+                <hr/>
+                <div id="video-grid" className="container row">
+                    {
+                        this.state.cameras.map((c) => {
+                            return <div>
+                                <p>{c.name}</p>
+                                <video ref={(v) => {v ? v.srcObject = c.srcObject : null;}} autoPlay muted></video>
+                            </div>
+                        })
+                    }
+                </div>
+            </div>
             {/* <div >
                 message <input type="text" name="" id="" onChange={(e) => this.setState({
                     ...this.state,
