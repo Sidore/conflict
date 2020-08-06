@@ -127,48 +127,49 @@ state = {
             })
         })
         socket.emit("Enter", {name : user});
-        const peers = {}
-        navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true
-        }).then(stream => {
-            addVideoStream(stream, this.state.player.name)
-        
-            myPeer.on('call', call => {
-                call.answer(stream)
-                call.on('stream', userVideoStream => {
 
-                    const peersObject: any = Object.values(peers).find((v:any, index) => {
-                        console.log(index,v.call.peer, call.peer, v.call.peer === call.peer);
-                        return v.call.peer === call.peer;
-                    }) 
+        const peers = {}
+//         navigator.mediaDevices.getUserMedia({
+//             video: true,
+//             audio: true
+//         }).then(stream => {
+//             addVideoStream(stream, this.state.player.name)
+        
+//             myPeer.on('call', call => {
+//                 call.answer(stream)
+//                 call.on('stream', userVideoStream => {
+
+//                     const peersObject: any = Object.values(peers).find((v:any, index) => {
+//                         console.log(index,v.call.peer, call.peer, v.call.peer === call.peer);
+//                         return v.call.peer === call.peer;
+//                     }) 
 
                     
-                    addVideoStream(userVideoStream, peersObject && peersObject.user)
-                })
-            })
+//                     addVideoStream(userVideoStream, peersObject && peersObject.user)
+//                 })
+//             })
   
-    socket.on('user-connected', user => {
-      connectToNewUser(user, stream)
-    })
-  })
+//     socket.on('user-connected', user => {
+//       connectToNewUser(user, stream)
+//     })
+//   })
   
-  socket.on('user-disconnected', userId => {
-    if (peers[userId]) {
-        peers[userId].call.close();
-        console.log(`User ${peers[userId].user} diconnected`)
+//   socket.on('user-disconnected', userId => {
+//     if (peers[userId]) {
+//         peers[userId].call.close();
+//         console.log(`User ${peers[userId].user} diconnected`)
 
-        this.setState({
-            ...this.state,
-            cameras: this.state.cameras.filter(c => c.name !== peers[userId].user)
-        })
-    }
+//         this.setState({
+//             ...this.state,
+//             cameras: this.state.cameras.filter(c => c.name !== peers[userId].user)
+//         })
+//     }
 
-  })
+//   })
   
-  myPeer.on('open', id => {
-    socket.emit('join-room', {id, user})
-  })
+//   myPeer.on('open', id => {
+//     socket.emit('join-room', {id, user})
+//   })
   
   const connectToNewUser = ({id: userId, user}, stream) => {
     const call = myPeer.call(userId, stream)
