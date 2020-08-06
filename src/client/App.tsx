@@ -59,6 +59,7 @@ state = {
     }
 
     componentDidMount() {
+
         let user = prompt("Введи имя") || `player-${Math.round(Math.random() * 1000)}`;
         this.setState({
             ...this.state,
@@ -140,7 +141,7 @@ state = {
 
 
         })
-        socket.emit("Enter", {name : user});
+        socket.emit("Enter", {name : user, roomId: location.pathname.split("/")[1]});
 
         const peers = {}
 //         navigator.mediaDevices.getUserMedia({

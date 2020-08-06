@@ -19,7 +19,39 @@ server.use(function (req, res, next) {
 server.use("/dist", express.static(path.join(__dirname, `${extraPass}../dist`)));
 server.use("/public", express.static(path.join(__dirname, `${extraPass}../public`)));
 
-server.get("/", (req: express.Request, res: express.Response) => {
+// server.get("/", (req: express.Request, res: express.Response) => {
+    
+// })
+
+function makeid(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+ }
+ 
+//  console.log(makeid(5));
+
+const GameArray = [];
+
+server.get('/', (req, res) => {
+    // res.redirect('https://app.example.io');
+    const path = makeid(5);
+    console.log(path)
+
+    const game = new ConflictGame({playersLimit: 4, io});
+
+    game.gameStateChange(ConflictGameStates.WaitingForPlayers)
+
+    GameArray.push({game, room: path})
+
+    res.redirect(`/${path}`)
+  })
+
+server.get('/:room', (req, res) => {
     return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
 })
 
@@ -45,15 +77,20 @@ const httpServer = server.listen(PORT, () => {
 // console.log(peerServer);
 
 
-const game = new ConflictGame({playersLimit: 4, io});
 
-game.gameStateChange(ConflictGameStates.WaitingForPlayers)
 // const players = []
 
 io.on("connection", (socket) => {
-    let player;
-    socket.on("Enter", ({name}) => {
+
+    let player, room, game;
+    socket.on("Enter", ({name, roomId}) => {
+        socket.join(roomId)
+        
+        game = GameArray.find(g => g.room == roomId);
+        game = game ? game.game : new Error("lol")
+        console.log(roomId,GameArray)
         player = game.addPlayer({ title: name, socket})
+        room = roomId;
         game.userAction(player,{
             type: PlayerMessageTypes.Enter
         })
@@ -74,10 +111,10 @@ io.on("connection", (socket) => {
     });
 
     socket.on('join-room', (userObj) => {
-        io.emit('user-connected', userObj)
+        socket.to(room).broadcast.emit('user-connected', userObj)
     
         socket.on('disconnect', () => {
-          io.emit('user-disconnected', userObj)
+            socket.to(room).broadcast.emit('user-disconnected', userObj)
         })
       })
 });
