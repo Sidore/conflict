@@ -173,16 +173,16 @@ export class ConflictGame {
                 const limitPassed = this.players.length >= this.startPlayersLimit
                 if (action.type === PlayerMessageTypes.Enter) {
                     if (limitPassed) {
-                        this.broadcast({type: MessageTypes.Message, content: `Room is packed enough, can start after command`});
+                        this.broadcast({type: MessageTypes.Message, content: `В комнате достаточно народу - можем начинать!`});
                     } else {
-                        this.broadcast({type: MessageTypes.Message, content: `Should wait for other player, need at least ${4 - this.players.length}`});
+                        this.broadcast({type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}`});
                     }
                 } else if(action.type === PlayerMessageTypes.Start){
                     if (this.players.length >= this.startPlayersLimit) {
                         this.broadcast({type: MessageTypes.Action, content: `start`});
                         this.startGame();
                     } else {
-                        this.broadcast({type: MessageTypes.Message, content: `Cannot start now, should wait for other player, need at least ${4 - this.players.length}`});
+                        this.broadcast({type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}`});
                     }
                 }
             }
@@ -206,7 +206,7 @@ export class ConflictGame {
                 }
 
                 if (this.cardsForRound.length === this.players.length - 1) {
-                    this.broadcast({ content : this.cardsForRound.map(o => o.card), type: MessageTypes.Message}, PlayerRoleTypes.Leader)
+                    this.broadcast({ content : this.cardsForRound.map(o => o.card), type: MessageTypes.Message})
                     this.gameStateChange(ConflictGameStates.Desicion);
                 }
                 break;
@@ -457,7 +457,7 @@ export class ConflictGame {
         player.socket.emit("Sync", {
             points: player.points
         })
-        this.broadcast({type: MessageTypes.Message, content: `Won player ${player.title}!`});
+        this.broadcast({type: MessageTypes.Message, content: `Выиграла карточка игрока ${player.title}!`});
     }
 
 
