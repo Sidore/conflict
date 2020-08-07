@@ -82,25 +82,35 @@ const httpServer = server.listen(PORT, () => {
 
 io.on("connection", (socket) => {
 
+
     let player, room, game;
     socket.on("Enter", ({name, roomId}) => {
-        socket.join(roomId)
+
+        try {
+            socket.join(roomId)
+            game = GameArray.find(g => g.room == roomId);
+            game = game ? game.game : new Error("lol")
+            console.log(roomId,GameArray)
+            player = game.addPlayer({ title: name, socket})
+            room = roomId;
+            game.userAction(player,{
+                type: PlayerMessageTypes.Enter
+            })
+        } catch(e) {
+            console.log("Exception in Enter block", e)
+        }
         
-        game = GameArray.find(g => g.room == roomId);
-        game = game ? game.game : new Error("lol")
-        console.log(roomId,GameArray)
-        player = game.addPlayer({ title: name, socket})
-        room = roomId;
-        game.userAction(player,{
-            type: PlayerMessageTypes.Enter
-        })
     })
 
     socket.on("message", (message) => {
-        game.userAction(player,{
-            type: message.type,
-            content: message.content
-        })
+        try {
+            game.userAction(player,{
+                type: message.type,
+                content: message.content
+            })
+        } catch(e) {
+            console.log("Exception in message block", e)
+        }
     })
 
     socket.on('disconnect', (data) => {

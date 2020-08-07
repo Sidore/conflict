@@ -365,8 +365,17 @@ state = {
                         {this.state.leadCard.content}
                     </div>}
 
-                    {this.state.leadCard.contentType === CardContentTypes.Image && <div>
-                       <img className="cardImage" src={this.state.leadCard.content}/>
+                    {this.state.leadCard.contentType === CardContentTypes.Image && <div
+                    style={{
+                        backgroundImage: `url(${this.state.leadCard.content})`,
+                        backgroundSize: "contain",
+                        backgroundPosition: "center",
+                        flex: 1,
+                        width: "100%",
+                        backgroundRepeat: "no-repeat"
+                    }}
+                    >
+                       {/* <img className="cardImage" src={this.state.leadCard.content}/> */}
                     </div>}    
                 
                 </div>}

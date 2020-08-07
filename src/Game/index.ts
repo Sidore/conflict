@@ -223,7 +223,7 @@ export class ConflictGame {
                 }
 
                 this.gameStateChange(ConflictGameStates.Round);
-                this.increasePoints(res.player);
+                this.increasePoints(res);
                 this.newRound();
 
             }
@@ -451,13 +451,13 @@ export class ConflictGame {
         this.deck = deck;
     }
 
-    increasePoints(player: PlayerType) {
+    increasePoints({player, card}) {
         player.points++;
 
         player.socket.emit("Sync", {
             points: player.points
         })
-        this.broadcast({type: MessageTypes.Message, content: `Выиграла карточка игрока ${player.title}!`});
+        this.broadcast({type: MessageTypes.Message, content: `Выиграла карточка игрока ${player.title}! С карточкой ${card.content}`});
     }
 
 
