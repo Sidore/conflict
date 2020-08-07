@@ -181,3 +181,17 @@ ul {
         width: 100%;
     }
 }
+
+@media (max-width: 750px) { 
+    .container.row {
+        flex-direction: column;
+    }
+
+    .info {
+        display: none;
+    }
+
+    ul {
+        justify-content: center;
+    }
+}

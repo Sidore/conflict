@@ -300,8 +300,8 @@ state = {
     return ( 
 
     <div className="col root">
-        <div className="container row flex-025">
-            <div className="block col">
+        <div className="container row flex-025 info">
+            <div className="block col ">
                 <p>Player info:</p>
                 <hr/>
                 <div className="row">
@@ -366,11 +366,12 @@ state = {
                     </div>}
 
                     {this.state.leadCard.contentType === CardContentTypes.Image && <div
+                    className="cardImage"
                     style={{
                         backgroundImage: `url(${this.state.leadCard.content})`,
                         backgroundSize: "contain",
                         backgroundPosition: "center",
-                        flex: 1,
+                        minHeight: "200px",
                         width: "100%",
                         backgroundRepeat: "no-repeat"
                     }}
