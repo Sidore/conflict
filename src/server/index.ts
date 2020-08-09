@@ -36,9 +36,19 @@ function makeid(length) {
 //  console.log(makeid(5));
 
 const GameArray = [];
-
 server.get('/', (req, res) => {
-    // res.redirect('https://app.example.io');
+    return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
+})
+
+// server.get('/:room', (req, res) => {
+//     return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
+// })
+
+server.get('/api/lobby', (req, res) => {
+    res.json(GameArray.map(i => i.room));
+})
+
+server.post('/api/lobby', (req, res) => {
     const path = makeid(5);
     console.log(path)
 
@@ -48,12 +58,10 @@ server.get('/', (req, res) => {
 
     GameArray.push({game, room: path})
 
-    res.redirect(`/${path}`)
-  })
-
-server.get('/:room', (req, res) => {
-    return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
+    res.json({room: path})
 })
+
+
 
 const PORT = process.env.PORT || 3333;
 const httpServer = server.listen(PORT, () => {
@@ -81,11 +89,8 @@ const httpServer = server.listen(PORT, () => {
 // const players = []
 
 io.on("connection", (socket) => {
-
-
     let player, room, game;
     socket.on("Enter", ({name, roomId}) => {
-
         try {
             socket.join(roomId)
             game = GameArray.find(g => g.room == roomId);
@@ -99,7 +104,6 @@ io.on("connection", (socket) => {
         } catch(e) {
             console.log("Exception in Enter block", e)
         }
-        
     })
 
     socket.on("message", (message) => {
