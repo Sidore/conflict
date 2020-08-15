@@ -1,9 +1,15 @@
 import * as express from "express";
 import * as path from "path";
 import * as socketServer from "socket.io";
+import * as Mongoose from "mongoose";
 import {ConflictGame, ConflictGameStates, PlayerMessageTypes} from "../Game";
+import DeckRouting from "./Api/Deck"
+import { Deck } from "./Models/Deck";
+
 // const { ExpressPeerServer } = require('peer');
 // import {ExpressPeerServer} from "peer";
+
+const mongoUrl = "mongodb+srv://Sidore:Co8lZkc0mZyj9Ij3@gamebookcluster-iqnhu.mongodb.net/Conflict?retryWrites=true"
 
 const extraPass = __dirname.indexOf("distServer") === -1 ? "../" : "../";
 
@@ -40,35 +46,44 @@ server.get('/', (req, res) => {
     return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
 })
 
-// server.get('/:room', (req, res) => {
-//     return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
-// })
+server.get('/:room', (req, res) => {
+    return res.sendFile(path.join(__dirname, `${extraPass}../dist`, 'index.html'));
+})
 
 server.get('/api/lobby', (req, res) => {
-    res.json(GameArray.map(i => i.room));
+    res.json(GameArray.map(i => ({room: i.room, deck: i.deck})));
 })
 
 server.post('/api/lobby', (req, res) => {
     const path = makeid(5);
-    console.log(path)
+    console.log(path, req.body)
 
-    const game = new ConflictGame({playersLimit: 4, io});
+    Deck.findOne({title: req.body.deck})
+        .then((deck) => {
+            const game = new ConflictGame({playersLimit: 4, io, deck});
 
-    game.gameStateChange(ConflictGameStates.WaitingForPlayers)
+            game.gameStateChange(ConflictGameStates.WaitingForPlayers)
 
-    GameArray.push({game, room: path})
+            GameArray.push({game, room: path, deck: deck.title})
 
-    res.json({room: path})
+            res.json({room: path})
+        })
 })
 
-
+server.use("/api/deck", DeckRouting)
 
 const PORT = process.env.PORT || 3333;
 const httpServer = server.listen(PORT, () => {
     console.log("run on port " + PORT)
 })
 
-
+Mongoose.connect(mongoUrl, 
+    { useNewUrlParser: true, 
+        useCreateIndex: true, 
+        useUnifiedTopology: true })
+    .then(() => {
+        console.log("Mongo is connected");
+    });
 // const peerServer = ExpressPeerServer(httpServer, {
 //     // @ts-ignore
 //     // debug: true,
@@ -76,17 +91,7 @@ const httpServer = server.listen(PORT, () => {
 //     path: "myapp",
 //     // key: "peerjs"
 //   });
-  const io = socketServer(httpServer);
-
-  
-// @ts-ignore
-// server.use('/peerjs', peerServer);
-
-// console.log(peerServer);
-
-
-
-// const players = []
+const io = socketServer(httpServer);
 
 io.on("connection", (socket) => {
     let player, room, game;
@@ -108,6 +113,7 @@ io.on("connection", (socket) => {
 
     socket.on("message", (message) => {
         try {
+            console.log("*******",GameArray, game)
             game.userAction(player,{
                 type: message.type,
                 content: message.content

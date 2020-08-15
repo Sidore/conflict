@@ -79,7 +79,7 @@ hr {
 
 .col {
     flex-direction: column;
-    align-items: flex-start;
+    // align-items: flex-start;
     & > * {
         display: flex;
     }

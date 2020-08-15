@@ -373,6 +373,7 @@ state = {
                         backgroundPosition: "center",
                         minHeight: "200px",
                         width: "100%",
+                        height: "100%",
                         backgroundRepeat: "no-repeat"
                     }}
                     >
