@@ -91,7 +91,7 @@ export default class Lobby extends React.Component<{},{
                 'Content-Type': 'application/json'
               },
             body: JSON.stringify({
-                title: this.state.title,
+                title: this.state.titleD,
                 logo: this.state.logo,
                 restrictions: this.state.restrictions,
                 leadCards: this.state.leadCards,

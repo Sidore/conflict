@@ -302,14 +302,6 @@ state = {
             })
         }
     }
-
-        //   <Provider store={store}>
-    //     <ApolloProvider client={client}>
-    //       <Router>
-    //         <BaseLayout />
-    //       </Router>
-    //     </ApolloProvider>
-    //   </Provider>
     
   render() {
 
@@ -365,7 +357,7 @@ state = {
 
     
         {ConflictGameStates.Init === this.state.action && 
-        <div className="container row block flex-025">
+        <div className="container row block">
             <button className="startButton" onClick={() => {
                     this.send("start");
                 }}>
@@ -376,26 +368,6 @@ state = {
         <div className="container row">
         {this.state.leadCard.title && <div id="leadCard" className="block col">
                 
-                {/* <p>Title: {this.state.leadCard.title}</p> */}
-
-                {/* {this.state.leadCard.contentType === CardContentTypes.Text && <div>
-                        {this.state.leadCard.content}
-                    </div>}
-
-                    {this.state.leadCard.contentType === CardContentTypes.Image && <div
-                    className="cardImage"
-                    style={{
-                        backgroundImage: `url(${this.state.leadCard.content})`,
-                        backgroundSize: "contain",
-                        backgroundPosition: "center",
-                        minHeight: "200px",
-                        width: "100%",
-                        height: "100%",
-                        backgroundRepeat: "no-repeat"
-                    }}
-                    >
-                       {/* <img className="cardImage" src={this.state.leadCard.content}/> */}
-                    {/* </div>}     */} 
                     <LeadCard onClick={() => {}} card={this.state.leadCard}></LeadCard>
                 
                 </div>}
