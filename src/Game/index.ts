@@ -18,7 +18,7 @@ export enum PlayerRoleTypes {
     Leader,
     Second
 }
-interface PlayerType {
+export interface PlayerType {
     id: string;
     title: string;
     socket: Socket;
@@ -115,6 +115,37 @@ export class ConflictGame {
         this.players.push(player);
 
         return player;
+    }
+
+    updatePlayer({reconnectId, socket}) {
+        const player = this.players.find((player) => {
+            return player.id === reconnectId;
+        })
+
+        if (player) {
+            player.socket = socket
+            this.broadcast({
+                type: MessageTypes.Message,
+                content: `[Реконект] Игрок ${player.title} снова с нами!`
+            })
+
+            player.socket.emit("Sync", {
+                role: player.role,
+                points: player.points,
+                title: player.title
+            })
+
+            if (this.cardsForRound.length > 0) {
+                this.cardsForRound.forEach(obj => {
+                    if (obj.player === player) {
+                        player.socket.emit(MessageTypes[MessageTypes.Card], obj.card)
+                    }
+                })
+            }
+            
+
+            return player;
+        }
     }
 
     playerChange(player: PlayerType, role) {

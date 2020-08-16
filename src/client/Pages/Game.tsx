@@ -61,7 +61,7 @@ state = {
     }
 
     componentDidMount() {
-
+        const room = location.pathname.split("/")[1];
         let user = prompt("Введи имя") || `player-${Math.round(Math.random() * 1000)}`;
         this.setState({
             ...this.state,
@@ -77,30 +77,34 @@ state = {
 
             console.log(ConflictGameStates[this.state.action], this.state.action, data)
 
-            if (this.state.action === ConflictGameStates.CardsGive) {
-                let card = data;
-                additionData.leadCard = card;
-                additionData.blockCards = false;
-                if (this.state.player.role === PlayerRoleTypes.Leader) {
-                    if (card.contentType === CardContentTypes.Image) {
-                        output = `У тебя главная карточка - ${card.title}, жди варианты`;
+            if (typeof output === "string" && output.includes("[Реконект]")) {
+                
+            } else {
+                if (this.state.action === ConflictGameStates.CardsGive) {
+                    let card = data;
+                    additionData.leadCard = card;
+                    additionData.blockCards = false;
+                    if (this.state.player.role === PlayerRoleTypes.Leader) {
+                        if (card.contentType === CardContentTypes.Image) {
+                            output = `У тебя главная карточка - ${card.title}, жди варианты`;
+                        } else {
+                            output = `У тебя главная карточка - ${card.content}, жди варианты`;
+                        }
                     } else {
-                        output = `У тебя главная карточка - ${card.content}, жди варианты`;
+                        if (card.contentType === CardContentTypes.Image) {
+                            output = `Тебе нужно подкинуть шутку к ${card.title}`;
+                        } else {
+                            output = `Тебе нужно подкинуть шутку к "${card.content}"`
+                        }
                     }
-                } else {
-                    if (card.contentType === CardContentTypes.Image) {
-                        output = `Тебе нужно подкинуть шутку к ${card.title}`;
+                } else if (this.state.action === ConflictGameStates.CardsWaiting) {
+                    if (this.state.player.role === PlayerRoleTypes.Leader) {
+                        output = "Выбери самую подходящею карточку"
                     } else {
-                        output = `Тебе нужно подкинуть шутку к "${card.content}"`
+                        output = "Теперь видно все варианты"
                     }
+                    additionData.options = data;
                 }
-            } else if (this.state.action === ConflictGameStates.CardsWaiting) {
-                if (this.state.player.role === PlayerRoleTypes.Leader) {
-                    output = "Выбери самую подходящею карточку"
-                } else {
-                    output = "Теперь видно все варианты"
-                }
-                additionData.options = data;
             }
 
             let today = new Date();
@@ -140,10 +144,18 @@ state = {
                 options: [],
                 blockCards: false
             })
-
-
         })
-        socket.emit("Enter", {name : user, roomId: location.pathname.split("/")[1]});
+
+        socket.on("reconnectId", (reconnectId) => {
+            console.log("reconnectId", reconnectId);
+            localStorage.setItem(room, reconnectId);
+        })
+
+        if (localStorage.getItem(room)) {
+            socket.emit("Enter", {name : user, roomId: room, reconnectId: localStorage.getItem(room)});
+        } else {
+            socket.emit("Enter", {name : user, roomId: room});
+        }
 
         const peers = {}
 //         navigator.mediaDevices.getUserMedia({

@@ -2,7 +2,7 @@ import * as express from "express";
 import * as path from "path";
 import * as socketServer from "socket.io";
 import * as Mongoose from "mongoose";
-import {ConflictGame, ConflictGameStates, PlayerMessageTypes} from "../Game";
+import {ConflictGame, ConflictGameStates, PlayerMessageTypes, PlayerType} from "../Game";
 import DeckRouting from "./Api/Deck"
 import { Deck } from "./Models/Deck";
 
@@ -94,18 +94,34 @@ Mongoose.connect(mongoUrl,
 const io = socketServer(httpServer);
 
 io.on("connection", (socket) => {
-    let player, room, game;
-    socket.on("Enter", ({name, roomId}) => {
+    let player: PlayerType, room, game;
+    socket.on("Enter", ({name, roomId, reconnectId}) => {
         try {
             socket.join(roomId)
             game = GameArray.find(g => g.room == roomId);
-            game = game ? game.game : new Error("lol")
-            console.log(roomId,GameArray)
-            player = game.addPlayer({ title: name, socket})
-            room = roomId;
-            game.userAction(player,{
-                type: PlayerMessageTypes.Enter
-            })
+            console.log(" --- step1 --- ", roomId, GameArray.map(m=> m.room));
+
+            if (game) {
+                console.log(" --- step2 --- ",roomId, game.game.state)
+                game = game && game.game ? game.game : new Error("lol")
+                
+                if (reconnectId) {
+                    console.log(" --- step3 --- ")
+                    player = game.updatePlayer({ reconnectId, socket})
+                } else {
+                    console.log(" --- step4 --- ");
+                    player = game.addPlayer({ title: name, socket})
+                }
+
+                room = roomId;
+                game.userAction(player,{
+                    type: PlayerMessageTypes.Enter
+                })
+
+                player.socket.emit("reconnectId", player.id)
+                
+            }
+            
         } catch(e) {
             console.log("Exception in Enter block", e)
         }
@@ -120,7 +136,7 @@ io.on("connection", (socket) => {
             })
         } catch(e) {
             console.log("Exception in message block", e)
-        }
+        } 
     })
 
     socket.on('disconnect', (data) => {
