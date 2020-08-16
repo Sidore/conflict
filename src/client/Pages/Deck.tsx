@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Link } from "react-router-dom";
-import { Card, CardTypes, CardContentTypes } from "./../../Server/Models/Card";
+import { Card, CardTypes, CardContentTypes } from "../../Game/Models/Card";
 import SecondCard from "../Components/SecondCard";
 import LeadCard from "../Components/LeadCard";
 

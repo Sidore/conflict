@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PlayerRoleTypes, ConflictGameStates  } from "./../../Game"
 
-import { CardTypes, CardContentTypes, Card } from "./../../Server/Models/Card"
+import { CardTypes, CardContentTypes, Card } from "../../Game/Models/Card"
 import io from 'socket.io-client';
 import "./style.scss";
 // import Peer from 'peerjs';

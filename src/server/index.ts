@@ -4,7 +4,7 @@ import * as socketServer from "socket.io";
 import * as Mongoose from "mongoose";
 import {ConflictGame, ConflictGameStates, PlayerMessageTypes, PlayerType} from "../Game";
 import DeckRouting from "./Api/Deck"
-import { Deck } from "./Models/Deck";
+import { Deck } from "../Game/Models/Deck";
 
 // const { ExpressPeerServer } = require('peer');
 // import {ExpressPeerServer} from "peer";
