@@ -41,7 +41,7 @@ export interface Card {
     type: CardTypes,
     title: string,
     content: string,
-    given: boolean,
+    given?: boolean,
     contentType: CardContentTypes,
 
 }

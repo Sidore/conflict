@@ -186,7 +186,7 @@ export default class Lobby extends React.Component<{},{
                     {this.state.leadCards.map(card => {
                         return (
                             <li style={{ display: "flex"}}>
-                                <LeadCard card={card}></LeadCard>
+                                <LeadCard onClick={() => {}} card={card}></LeadCard>
                             </li>
                         )
                     })}
@@ -200,7 +200,7 @@ export default class Lobby extends React.Component<{},{
                             // <li>
                             //     {l.title} / {l.type} / {l.content} / {l.contentType}
                             // </li>
-                            <SecondCard card={card}></SecondCard>
+                            <SecondCard onClick={() => {}} card={card}></SecondCard>
                         )
                     })}
                 </ul>

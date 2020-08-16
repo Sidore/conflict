@@ -1,9 +1,11 @@
 import * as React from "react";
-import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes } from "./../../Game"
+import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes, Card } from "./../../Game"
 import io from 'socket.io-client';
 import "./style.scss";
 // import Peer from 'peerjs';
 import { useRef } from "react";
+import LeadCard from "../Components/LeadCard";
+import SecondCard from "../Components/SecondCard";
 // import BaseLayout from "./BaseLayout";
 // import ApolloClient from "apollo-boost";
 // import { ApolloProvider } from "react-apollo";
@@ -33,10 +35,10 @@ export default class Game extends React.Component<{},
     player: any, 
     message: string, 
     type: string, 
-    cards: any[], 
+    cards: Card[], 
     action: number
-    leadCard: any,
-    options: any[],
+    leadCard: Card,
+    options: Card[],
     cameras: any[],
     blockCards: boolean
 }> {
@@ -47,7 +49,7 @@ state = {
     message: "",
     type: "",
     cards: [],
-    leadCard: { title: "", content: "", contentType: CardContentTypes.Text},
+    leadCard: { title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard},
     action: 0,
     options: [],
     cameras: [],
@@ -361,7 +363,7 @@ state = {
                 
                 {/* <p>Title: {this.state.leadCard.title}</p> */}
 
-                {this.state.leadCard.contentType === CardContentTypes.Text && <div>
+                {/* {this.state.leadCard.contentType === CardContentTypes.Text && <div>
                         {this.state.leadCard.content}
                     </div>}
 
@@ -378,7 +380,8 @@ state = {
                     }}
                     >
                        {/* <img className="cardImage" src={this.state.leadCard.content}/> */}
-                    </div>}    
+                    {/* </div>}     */} 
+                    <LeadCard onClick={() => {}} card={this.state.leadCard}></LeadCard>
                 
                 </div>}
 
@@ -388,9 +391,7 @@ state = {
                     <hr/>
                     <ul>
                         {this.state.options.map((card) => {
-                        return (<li className="secondCard" onClick={() => this.sendCard(card)}>{card.content.split("-").map(part => {
-                            return <span>{part}</span>
-                            })}</li>)
+                        return (<SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>)
                         })}
                     </ul>
                     {
@@ -404,9 +405,7 @@ state = {
                     <hr/>
                     <ul>
                         {this.state.options.map((card) => {
-                        return (<li className="secondCard">{card.content.split("-").map(part => {
-                            return <span>{part}</span>
-                            })}</li>)
+                        return (<SecondCard card={card}/>)
                         })}
                     </ul>
                     {
@@ -418,14 +417,8 @@ state = {
                     <p>Твои карты:</p>
                     <hr/>
                     <ul className="row">
-                        {this.state.cards.map((m,i) => {
-                            return (<li className="secondCard" key={i} onClick={() => this.sendCard(m)}>
-                                
-                                        {m.content.split("-").map(part => {
-                                        return <span>{part}</span>
-                                        })} 
-                                        
-                                    </li>)
+                        {this.state.cards.map((card,i) => {
+                            return (<SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>)
                         })}
                     </ul>
                 </div>}
