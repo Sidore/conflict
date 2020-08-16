@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./distServer/Server/index.js",
-    "server": "ts-node ./src/Server/index.ts",
+    "start": "node ./distServer/server/index.js",
+    "server": "ts-node ./src/server/index.ts",
     "dev": "nodemon --watch",
     "client": "parcel src/client/index.html",
     "build": "parcel build src/client/index.html --public-url /dist/ && tsc -p ."
