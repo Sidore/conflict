@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { Deck } from "../Models/Deck";
+import { Deck } from "./../Models/Deck";
 
 // import { auth } from "../../middleware/auth";
 

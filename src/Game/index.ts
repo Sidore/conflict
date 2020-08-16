@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
 import * as chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
-import { IDeck } from "../Server/Models/Deck";
-import {CardTypes, CardContentTypes, Card } from "../Server/Models/Card"
+import { IDeck } from "./../Server/Models/Deck";
+import {CardTypes, CardContentTypes, Card } from "./../Server/Models/Card"
 
 export enum ConflictGameStates {
     Init = 0,
