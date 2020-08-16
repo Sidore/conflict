@@ -3,7 +3,6 @@ import * as chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
 import { IDeck } from "../Server/Models/Deck";
 
-
 export enum ConflictGameStates {
     Init = 0,
     WaitingForPlayers = 1,
