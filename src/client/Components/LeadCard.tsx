@@ -1,4 +1,4 @@
-import { CardContentTypes, Card } from "../../Game"
+import { CardContentTypes, Card } from "../../Server/Models/Card"
 import React, { SyntheticEvent } from "react"
 
 export default class LeadCard extends React.Component<{card: Card, onClick: any },{ }>{

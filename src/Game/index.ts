@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import * as chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
 import { IDeck } from "../Server/Models/Deck";
+import {CardTypes, CardContentTypes, Card } from "../Server/Models/Card"
 
 export enum ConflictGameStates {
     Init = 0,
@@ -25,25 +26,8 @@ export interface PlayerType {
     secondCards: number;
     points: number;
 }
-export enum CardTypes {
-    LeadCard,
-    SecondCard
-}
 
-export enum CardContentTypes {
-    Text,
-    Image,
-    DoubleText,
-    ImageText
-}
-export interface Card {
-    type: CardTypes,
-    title: string,
-    content: string,
-    given?: boolean,
-    contentType: CardContentTypes,
 
-}
 export enum MessageTypes {
     Message = "Message",
     Action = "Action",

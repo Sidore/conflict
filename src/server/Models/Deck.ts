@@ -1,5 +1,5 @@
 import { Schema, Model, model, Document } from "mongoose";
-import { Card } from "../../Game";
+import { Card } from "./Card"
 
 export interface IDeck {
     title: string;

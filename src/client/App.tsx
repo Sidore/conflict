@@ -1,5 +1,4 @@
 import * as React from "react";
-import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes } from "./../Game"
 import io from 'socket.io-client';
 // import "./style.scss";
 // import Peer from 'peerjs';

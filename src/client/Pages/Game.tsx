@@ -1,5 +1,7 @@
 import * as React from "react";
-import { PlayerRoleTypes, ConflictGameStates, CardTypes, CardContentTypes, Card } from "./../../Game"
+import { PlayerRoleTypes, ConflictGameStates  } from "./../../Game"
+
+import { CardTypes, CardContentTypes, Card } from "../../Server/Models/Card"
 import io from 'socket.io-client';
 import "./style.scss";
 // import Peer from 'peerjs';
@@ -137,7 +139,7 @@ state = {
                 }
             })
         })
-        
+
         socket.on("Card", (data) => {
             this.setState({
                 ...this.state,
