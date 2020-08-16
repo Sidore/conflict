@@ -95,15 +95,15 @@ export default class Lobby extends React.Component<{},{
                 <div>
                     Выбранная колода : {this.state.currentDeck.title}
                 
-                <select>
-                    {this.state.decks.map((d) => {
-                        return (
-                            <option value="" onClick={() => {
+                <select onChange={(e) => {
                                 this.setState({
                                     ...this.state,
-                                    currentDeck: d
+                                    currentDeck: this.state.decks.find(d => d.title === e.target.value) 
                                 })
                             }}>
+                    {this.state.decks.map((d) => {
+                        return (
+                            <option value={d.title}>
                                 {d.title}
                             </option>
                         )

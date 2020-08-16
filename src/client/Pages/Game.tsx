@@ -317,7 +317,7 @@ state = {
     return ( 
 
     <div className="col root">
-        <div className="container row flex-025 info">
+        <div className="container row info">
             <div className="block col ">
                 <p>Player info:</p>
                 <hr/>
