@@ -78,7 +78,7 @@ state = {
             console.log(ConflictGameStates[this.state.action], this.state.action, data)
 
             if (typeof output === "string" && output.includes("[Реконект]")) {
-                
+
             } else {
                 if (this.state.action === ConflictGameStates.CardsGive) {
                     let card = data;
@@ -137,6 +137,7 @@ state = {
                 }
             })
         })
+        
         socket.on("Card", (data) => {
             this.setState({
                 ...this.state,
