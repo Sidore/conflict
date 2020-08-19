@@ -21,6 +21,7 @@ router.get('/', (req, res) => {
 // @route GET api/deck
 // @access public
 router.get('/:id', (req, res) => {
+    console.log("hit get")
     Deck.find({_id: req.params.id})
         // .sort({ date: -1 })
         .then((Deck) => {
@@ -49,17 +50,34 @@ router.post('/', (req, res) => {
 
 })
 
-router.put("/:id", (req,res) => {
-    Deck
-        .find({_id: req.params.id})
-        .then((deck) => {
-            const mutated = {
-                ...deck,
-                ...JSON.parse(req.body.deck)
-            }
+router.post("/:id", (req,res) => {
+
+    const query = {'_id': req.params.id};
+    const data = {
+        title: req.body.title,
+        // url: req.body.url,
+        logo: req.body.logo,
+        restrictions: req.body.restrictions,
+        leadCards: req.body.leadCards,
+        secondCards: req.body.secondCards
+    }
+
+
+        Deck.findOneAndUpdate(query, data, {upsert: true}, function(err, doc) {
+            if (err) return res.status(500).send({error: err});
+            return res.json({ success: true });
+        });
+
+    // Deck
+    //     .find({_id: req.params.id})
+    //     .then((deck) => {
+    //         const mutated = {
+    //             ...deck,
+    //             ...JSON.parse(req.body.deck)
+    //         }
 
             
-        })
+    //     })
 })
 
 // @route GET api/Deck/:id/game

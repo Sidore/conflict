@@ -34,10 +34,18 @@ export default class App extends React.Component<{},{}> {
                                 <Deck/>
                             )}
                             />
+
+                            <Route path="/deck/:id" render={(props) => (
+                                <Deck {...props} />
+                                )}
+                            />
+
                             <Route path="/:id" render={(props) => (
                                 <Game {...props} />
                                 )}
                             />
+
+                            
                             
                         </Switch>
                     </Router>

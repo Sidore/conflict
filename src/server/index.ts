@@ -84,6 +84,8 @@ Mongoose.connect(mongoUrl,
     .then(() => {
         console.log("Mongo is connected");
     });
+
+    Mongoose.set('useFindAndModify', false);
 // const peerServer = ExpressPeerServer(httpServer, {
 //     // @ts-ignore
 //     // debug: true,

@@ -34,16 +34,35 @@ export default class Lobby extends React.Component<{},{
         type: CardTypes.LeadCard,
         title: "",
         content: "",
-        contentType: CardContentTypes.Image
+        contentType: CardContentTypes.Image,
+        deckId: ""
+    }
+
+    constructor(props) {
+        super(props);
+
+        if (props.match) {
+            this.state.deckId = props.match.params.id
+        }
     }
 
     componentDidMount() {
-        // fetch(deckUrl)
-        //     .then((res) => res.json())
-        //     .then(rooms => this.setState({
-        //         ...this.state,
-        //         rooms
-        //     })) 
+        if (this.state.deckId) {
+            fetch(`${deckUrl}/${this.state.deckId}`)
+                .then(res => res.json())
+                .then(deck => {
+                    console.log(deck);
+                    const currentDeck = deck[0];
+                    this.setState({
+                        ...this.state,
+                        titleD: currentDeck.title,
+                        logo: currentDeck.logo,
+                        restrictions: currentDeck.restrictions,
+                        leadCards: currentDeck.leadCards,
+                        secondCards: currentDeck.secondCards
+                    })
+                })
+        }
     }
 
     addCard() {
@@ -76,6 +95,21 @@ export default class Lobby extends React.Component<{},{
         }
     }
 
+    deleteCard(card) {
+        if(confirm("Удалить карточку?")) {
+            if (card.type === CardTypes.LeadCard) {
+                this.setState({
+                    ...this.state,
+                    leadCards: this.state.leadCards.filter(c => c !== card)
+                })
+            } else {
+                this.setState({
+                    ...this.state,
+                    secondCards: this.state.secondCards.filter(c => c !== card)
+                })
+            }
+        }
+    }
 
     createDeck() {
         // title: req.body.title,
@@ -84,8 +118,15 @@ export default class Lobby extends React.Component<{},{
     //     restrictions: req.body.restrictions,
     //     leadCards: JSON.parse(req.body.leadCards),
     //     secondCards: JSON.parse(req.body.secondCards)
-        fetch(deckUrl, {
-            method: 'POST',
+
+    let method = "POST", url = deckUrl;
+
+    if (this.state.deckId) {
+        // method = "PUT";
+        url = `${deckUrl}/${this.state.deckId}`
+    }
+        fetch(url, {
+            method,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -95,12 +136,17 @@ export default class Lobby extends React.Component<{},{
                 logo: this.state.logo,
                 restrictions: this.state.restrictions,
                 leadCards: this.state.leadCards,
-                secondCards: this.state.secondCards
+                secondCards: this.state.secondCards,
             })
         })
             .then((res) => res.json())
             .then(data => {
-                
+                if (data && data.success) {
+                    console.log("deck is updated")
+                } else {
+                    let u = `${deckUrl.replace("3333","1234").replace("api/","")}/${data._id}`;
+                    location.assign(u)
+                }
         }) 
     }
 
@@ -185,8 +231,8 @@ export default class Lobby extends React.Component<{},{
                 <ul className="row">
                     {this.state.leadCards.map(card => {
                         return (
-                            <li style={{ display: "flex"}}>
-                                <LeadCard onClick={() => {}} card={card}></LeadCard>
+                            <li key={card.content} style={{ display: "flex"}}>
+                                <LeadCard onClick={() => this.deleteCard(card)} card={card}></LeadCard>
                             </li>
                         )
                     })}
@@ -200,13 +246,14 @@ export default class Lobby extends React.Component<{},{
                             // <li>
                             //     {l.title} / {l.type} / {l.content} / {l.contentType}
                             // </li>
-                            <SecondCard onClick={() => {}} card={card}></SecondCard>
+                            <SecondCard key={card.content} onClick={() => this.deleteCard(card)} card={card}></SecondCard>
                         )
                     })}
                 </ul>
             </div>
             <div className="container col">
-                <button className="createButton" onClick={() => this.createDeck()}>Создать новую колоду</button>
+                <button className="createButton" onClick={() => this.createDeck()}>
+                    {this.state.deckId ? "Обновить колоду" : "Создать новую колоду"}</button>
             </div>
         </div>
     }

@@ -19,7 +19,8 @@ export default class Lobby extends React.Component<{},{
         rooms: [],
         decks: [],
         currentDeck: {
-            title: ""
+            title: "",
+            _id: ""
         },
         lastCreated: ""
     }
@@ -90,6 +91,9 @@ export default class Lobby extends React.Component<{},{
                 {this.state.lastCreated && <p style={{ display : "flex", marginBottom: "20px"}}> {this.state.lastCreated}</p>}
 
                 <Link to="/newDeck">Создать новую колоду</Link>
+                {
+                 this.state.currentDeck._id && <Link to={`/deck/${this.state.currentDeck._id}`}>Редактировать выбранную колоду</Link>
+                }
 
                 <button className="createButton" onClick={() => this.createRoom()}>Создать новую комнату</button>
                 <div>
@@ -103,7 +107,7 @@ export default class Lobby extends React.Component<{},{
                             }}>
                     {this.state.decks.map((d) => {
                         return (
-                            <option value={d.title}>
+                            <option key={d.title} value={d.title}>
                                 {d.title}
                             </option>
                         )
