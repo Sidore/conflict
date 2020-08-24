@@ -91,6 +91,16 @@ hr {
     max-height: 300px;
 }
 
+.cardWithImage {
+    background-size: contain;
+    background-position: center;
+    min-height: 200px;
+    min-width: 200px;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+}
+
 .root, #app-container {
     // background: linear-gradient(135deg, #141f41 0%, #1b0929 100%);;
     // background: url(https://i.pinimg.com/564x/b1/de/c4/b1dec4f7e6848c3ef296ff0e6db2209e.jpg) center;
@@ -203,6 +213,11 @@ ul {
     font-size: 20px;
     border-radius: 10px;
     justify-content: center;
+}
+
+.roomsListItem {
+    margin-bottom: 40px;
+    margin-top: 10px;
 }
 
 @media (max-width: 750px) { 

@@ -53,18 +53,18 @@ export default class Lobby extends React.Component<{},{
                 deck: this.state.currentDeck.title
             })
         })
-            .then((res) => res.json())
-            .then(({room, deck}) => {
+        .then((res) => res.json())
+        .then(({room, deck}) => {
                 this.setState({
                 ...this.state,
                 lastCreated: room
             })
-            fetch(lobbyUrl)
-                .then((res) => res.json())
-                .then(rooms => this.setState({
-                    ...this.state,
-                    rooms
-                })) 
+        fetch(lobbyUrl)
+            .then((res) => res.json())
+            .then(rooms => this.setState({
+                ...this.state,
+                rooms
+            })) 
         }) 
     }
 
@@ -76,12 +76,8 @@ export default class Lobby extends React.Component<{},{
                 {
                     this.state.rooms.reverse().map(room => {
                         return (
-                            <li key={room} style={{
-                                marginBottom: "40px",
-                                marginTop: "10px"
-                            }}>
-                    Игровая комната <b>{room.room}</b> и колода <i>{room.deck}</i> - <Link className="actionLink" to={`/${room.room}`}>Зайти!</Link>
-                                
+                            <li className="roomsListItem" key={room}>
+                                Игровая комната <b>{room.room}</b> и колода <i>{room.deck}</i> - <Link className="actionLink" to={`/${room.room}`}>Зайти!</Link>
                             </li>
                         )
                     })
@@ -97,7 +93,7 @@ export default class Lobby extends React.Component<{},{
 
                 <button className="createButton" onClick={() => this.createRoom()}>Создать новую комнату</button>
                 <div>
-                    Выбранная колода : {this.state.currentDeck.title}
+                Выбранная колода : {this.state.currentDeck.title}
                 
                 <select onChange={(e) => {
                                 this.setState({
