@@ -8,7 +8,7 @@ const serverUrl = dev ? "http://localhost:3333" : "";
 const lobbyUrl = `${serverUrl}/api/lobby`;
 const deckUrl = `${serverUrl}/api/deck`;
 
-export default class Lobby extends React.Component<{},{
+export default class Lobby extends React.Component<{}, {
     rooms: any[],
     decks: any[],
     currentDeck: any,
@@ -38,8 +38,8 @@ export default class Lobby extends React.Component<{},{
                             decks,
                             currentDeck: decks[0]
                         })
-                    }) 
-        })
+                    })
+            })
     }
 
     createRoom() {
@@ -48,24 +48,24 @@ export default class Lobby extends React.Component<{},{
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-              },
+            },
             body: JSON.stringify({
                 deck: this.state.currentDeck.title
             })
         })
-        .then((res) => res.json())
-        .then(({room, deck}) => {
-                this.setState({
-                ...this.state,
-                lastCreated: room
-            })
-        fetch(lobbyUrl)
             .then((res) => res.json())
-            .then(rooms => this.setState({
-                ...this.state,
-                rooms
-            })) 
-        }) 
+            .then(({ room, deck }) => {
+                this.setState({
+                    ...this.state,
+                    lastCreated: room
+                })
+                fetch(lobbyUrl)
+                    .then((res) => res.json())
+                    .then(rooms => this.setState({
+                        ...this.state,
+                        rooms
+                    }))
+            })
     }
 
     render() {
@@ -84,31 +84,31 @@ export default class Lobby extends React.Component<{},{
                 }
             </ul>
             <div className="container block col">
-                {this.state.lastCreated && <p style={{ display : "flex", marginBottom: "20px"}}> {this.state.lastCreated}</p>}
+                {this.state.lastCreated && <p style={{ display: "flex", marginBottom: "20px" }}> {this.state.lastCreated}</p>}
 
                 <Link to="/newDeck">Создать новую колоду</Link>
                 {
-                 this.state.currentDeck._id && <Link to={`/deck/${this.state.currentDeck._id}`}>Редактировать выбранную колоду</Link>
+                    this.state.currentDeck._id && <Link to={`/deck/${this.state.currentDeck._id}`}>Редактировать выбранную колоду</Link>
                 }
 
                 <button className="createButton" onClick={() => this.createRoom()}>Создать новую комнату</button>
                 <div>
-                Выбранная колода : {this.state.currentDeck.title}
-                
-                <select onChange={(e) => {
-                                this.setState({
-                                    ...this.state,
-                                    currentDeck: this.state.decks.find(d => d.title === e.target.value) 
-                                })
-                            }}>
-                    {this.state.decks.map((d) => {
-                        return (
-                            <option key={d.title} value={d.title}>
-                                {d.title}
-                            </option>
-                        )
-                    })}
-                </select>
+                    Выбранная колода : {this.state.currentDeck.title}
+
+                    <select onChange={(e) => {
+                        this.setState({
+                            ...this.state,
+                            currentDeck: this.state.decks.find(d => d.title === e.target.value)
+                        })
+                    }}>
+                        {this.state.decks.map((d) => {
+                            return (
+                                <option key={d.title} value={d.title}>
+                                    {d.title}
+                                </option>
+                            )
+                        })}
+                    </select>
                 </div>
             </div>
         </div>

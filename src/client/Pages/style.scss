@@ -220,6 +220,35 @@ ul {
     margin-top: 10px;
 }
 
+.messageout-enter {
+    // position: absolute;
+    // top: 0;
+    left: calc(13% + 5px);
+    right: calc(13% + 5px);
+    opacity: 0.01;
+    transform: translateY(0%) scale(0.01);
+  }
+  
+  /* ending ENTER animation */
+  .messageout-enter-active {
+    opacity: 1;
+    transform: translateY(0%) scale(1);
+    transition: all 1000ms ease-in-out;
+  }
+  
+  /* starting EXIT animation */
+  .messageout-exit {
+    opacity: 1;
+    transform: scale(1.01);
+  }
+  
+  /* ending EXIT animation */
+  .messageout-exit-active {
+    opacity: 0;
+    transform: scale(4);
+    transition: all 1000ms ease-in-out;
+  }
+
 @media (max-width: 750px) { 
     .container.row {
         flex-direction: column;

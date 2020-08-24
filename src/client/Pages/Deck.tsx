@@ -12,7 +12,7 @@ const serverUrl = dev ? "http://localhost:3333" : "";
 
 const deckUrl = `${serverUrl}/api/deck`;
 
-export default class Lobby extends React.Component<{},{
+export default class Lobby extends React.Component<{}, {
     titleD: string;
     restrictions: string;
     logo: string;
@@ -66,11 +66,11 @@ export default class Lobby extends React.Component<{},{
     }
 
     addCard() {
-        console.log(this.state.type, CardTypes.LeadCard,{
+        console.log(this.state.type, CardTypes.LeadCard, {
             title: this.state.title,
-                    type: this.state.type,
-                    contentType: this.state.contentType,
-                    content: this.state.content
+            type: this.state.type,
+            contentType: this.state.contentType,
+            content: this.state.content
         })
         if (this.state.type === CardTypes.LeadCard) {
             this.setState({
@@ -96,7 +96,7 @@ export default class Lobby extends React.Component<{},{
     }
 
     deleteCard(card) {
-        if(confirm("Удалить карточку?")) {
+        if (confirm("Удалить карточку?")) {
             if (card.type === CardTypes.LeadCard) {
                 this.setState({
                     ...this.state,
@@ -113,24 +113,24 @@ export default class Lobby extends React.Component<{},{
 
     createDeck() {
         // title: req.body.title,
-    //     // url: req.body.url,
-    //     logo: req.body.logo,
-    //     restrictions: req.body.restrictions,
-    //     leadCards: JSON.parse(req.body.leadCards),
-    //     secondCards: JSON.parse(req.body.secondCards)
+        //     // url: req.body.url,
+        //     logo: req.body.logo,
+        //     restrictions: req.body.restrictions,
+        //     leadCards: JSON.parse(req.body.leadCards),
+        //     secondCards: JSON.parse(req.body.secondCards)
 
-    let method = "POST", url = deckUrl;
+        let method = "POST", url = deckUrl;
 
-    if (this.state.deckId) {
-        // method = "PUT";
-        url = `${deckUrl}/${this.state.deckId}`
-    }
+        if (this.state.deckId) {
+            // method = "PUT";
+            url = `${deckUrl}/${this.state.deckId}`
+        }
         fetch(url, {
             method,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-              },
+            },
             body: JSON.stringify({
                 title: this.state.titleD,
                 logo: this.state.logo,
@@ -144,10 +144,10 @@ export default class Lobby extends React.Component<{},{
                 if (data && data.success) {
                     console.log("deck is updated")
                 } else {
-                    let u = `${deckUrl.replace("3333","1234").replace("api/","")}/${data._id}`;
+                    let u = `${deckUrl.replace("3333", "1234").replace("api/", "")}/${data._id}`;
                     location.assign(u)
                 }
-        }) 
+            })
     }
 
     render() {
@@ -161,7 +161,7 @@ export default class Lobby extends React.Component<{},{
                         ...this.state,
                         titleD: e.target.value
                     })
-                }} id="" placeholder="название"/>название колоды</label>
+                }} id="" placeholder="название" />название колоды</label>
 
 
             </div>
@@ -173,47 +173,47 @@ export default class Lobby extends React.Component<{},{
                         ...this.state,
                         type: CardTypes.LeadCard
                     })
-                }} name="type" value={CardTypes.LeadCard} defaultChecked/>Главная</label>
+                }} name="type" value={CardTypes.LeadCard} defaultChecked />Главная</label>
                 <label><input type="radio" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         type: CardTypes.SecondCard
                     })
-                }} name="type" value={CardTypes.SecondCard}/>Вторая</label>
-                <br/>
+                }} name="type" value={CardTypes.SecondCard} />Вторая</label>
+                <br />
                 <label><input type="text" name="" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         title: e.target.value
                     })
-                }} id="" placeholder="название"/>название</label>
-                <br/>
+                }} id="" placeholder="название" />название</label>
+                <br />
                 <label><input type="radio" name="typeС" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         contentType: CardContentTypes.Text
                     })
-                }} value={CardContentTypes.Text}/>Текст</label>
+                }} value={CardContentTypes.Text} />Текст</label>
                 <label><input type="radio" name="typeС" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         contentType: CardContentTypes.Image
                     })
-                }} value={CardContentTypes.Image} defaultChecked/>Картинка</label>
+                }} value={CardContentTypes.Image} defaultChecked />Картинка</label>
                 <label><input type="radio" name="typeС" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         contentType: CardContentTypes.DoubleText
                     })
-                }} value={CardContentTypes.DoubleText}/>Два текста</label>
+                }} value={CardContentTypes.DoubleText} />Два текста</label>
                 <label><input type="radio" name="typeС" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         contentType: CardContentTypes.ImageText
                     })
-                }} value={CardContentTypes.ImageText}/>Текст и картинка</label>
-                <br/>
-                <textarea placeholder="контент"  onChange={(e) => {
+                }} value={CardContentTypes.ImageText} />Текст и картинка</label>
+                <br />
+                <textarea placeholder="контент" onChange={(e) => {
                     this.setState({
                         ...this.state,
                         content: e.target.value
@@ -225,13 +225,13 @@ export default class Lobby extends React.Component<{},{
                     Добавить
                 </button>
             </div>
-            
+
             <div className="container col">
                 <p>Главные карты (минимум 20)</p>
                 <ul className="row">
                     {this.state.leadCards.map(card => {
                         return (
-                            <li key={card.content} style={{ display: "flex"}}>
+                            <li key={card.content} style={{ display: "flex" }}>
                                 <LeadCard onClick={() => this.deleteCard(card)} card={card}></LeadCard>
                             </li>
                         )

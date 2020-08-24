@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
                     type: PlayerMessageTypes.Enter
                 })
 
-                player.socket.emit("reconnectId", player.id)
+                player.socket.emit("reconnectId", player.id);
                 
             }
             
@@ -141,18 +141,24 @@ io.on("connection", (socket) => {
         } 
     })
 
-    socket.on('disconnect', (data) => {
-        // let index = players.findIndex(p => p.id === player.id);
-        // if(index !== -1) {
-        //     players.splice(index,1);
-        // }   
-    });
+    // socket.on('disconnect', (data) => {
+    //     // let index = players.findIndex(p => p.id === player.id);
+    //     // if(index !== -1) {
+    //     //     players.splice(index,1);
+    //     // }   
+    // });
 
-    socket.on('join-room', (userObj) => {
-        socket.to(room).broadcast.emit('user-connected', userObj)
+    // socket.on('join-room', (userObj) => {
+    //     socket.to(room).broadcast.emit('user-connected', userObj)
     
-        socket.on('disconnect', () => {
-            socket.to(room).broadcast.emit('user-disconnected', userObj)
-        })
-      })
+    //     socket.on('disconnect', () => {
+    //         socket.to(room).broadcast.emit('user-disconnected', userObj)
+    //     })
+    //   })
+
+    socket.on('disconnect', () => {
+        setTimeout(() => {
+            socket.emit('reconnect_attempt');
+        }, 500);
+      });
 });

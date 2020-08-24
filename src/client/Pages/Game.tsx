@@ -1,5 +1,6 @@
 import * as React from "react";
-import { PlayerRoleTypes, ConflictGameStates  } from "./../../Game"
+import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { PlayerRoleTypes, ConflictGameStates } from "./../../Game"
 import { CardTypes, CardContentTypes, Card } from "../../Game/Models/Card"
 import io from 'socket.io-client';
 import "./style.scss";
@@ -11,30 +12,31 @@ const serverUrl = dev ? "http://localhost:3333" : "";
 const socket = io(serverUrl);
 
 export default class Game extends React.Component<{},
-{messages: string[], 
-    player: any, 
-    message: string, 
-    type: string, 
-    cards: Card[], 
-    action: number
-    leadCard: Card,
-    options: Card[],
-    cameras: any[],
-    blockCards: boolean
-}> {
+    {
+        messages: string[],
+        player: any,
+        message: string,
+        type: string,
+        cards: Card[],
+        action: number
+        leadCard: Card,
+        options: Card[],
+        cameras: any[],
+        blockCards: boolean
+    }> {
 
-state = {
-    messages: [],
-    player: { name: "", points: 0, role: 1},
-    message: "",
-    type: "",
-    cards: [],
-    leadCard: { title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard},
-    action: 0,
-    options: [],
-    cameras: [],
-    blockCards : false
-}
+    state = {
+        messages: [],
+        player: { name: "", points: 0, role: 1 },
+        message: "",
+        type: "",
+        cards: [],
+        leadCard: { title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard },
+        action: 0,
+        options: [],
+        cameras: [],
+        blockCards: false
+    }
 
     constructor(props) {
         super(props);
@@ -53,7 +55,7 @@ state = {
         socket.on("Message", (data) => {
 
             let output = data;
-            let additionData:any = {}
+            let additionData: any = {}
 
             console.log(ConflictGameStates[this.state.action], this.state.action, data)
 
@@ -94,18 +96,18 @@ state = {
 
             this.setState({
                 ...this.state,
-                messages : [...this.state.messages, output],
+                messages: [...this.state.messages, output],
                 ...additionData
             })
         })
         socket.on("Action", (data) => {
             this.setState({
                 ...this.state,
-                action : +data,
+                action: +data,
             })
         })
         socket.on("Sync", (data) => {
-            console.log("sync", data,this.state.player, {
+            console.log("sync", data, this.state.player, {
                 ...this.state.player,
                 ...data
             })
@@ -121,7 +123,7 @@ state = {
         socket.on("Card", (data) => {
             this.setState({
                 ...this.state,
-                cards : [...this.state.cards, data],
+                cards: [...this.state.cards, data],
                 options: [],
                 blockCards: false
             })
@@ -133,18 +135,19 @@ state = {
         })
 
         if (localStorage.getItem(room)) {
-            socket.emit("Enter", {name : user, roomId: room, reconnectId: localStorage.getItem(room)});
+            socket.emit("Enter", { name: user, roomId: room, reconnectId: localStorage.getItem(room) });
+            
         } else {
-            socket.emit("Enter", {name : user, roomId: room});
+            socket.emit("Enter", { name: user, roomId: room });
         }
     }
 
     send(t?) {
         if (t) {
-            socket.emit("message",{
+            socket.emit("message", {
                 type: 1
             })
-        }else{
+        } else {
             socket.emit("message", {
                 type: this.state.type || 1,
                 content: this.state.message
@@ -161,7 +164,7 @@ state = {
             type: 1,
             content: card
         });
-        
+
         if (card.type === CardTypes.LeadCard) {
 
 
@@ -169,9 +172,9 @@ state = {
             let today = new Date();
             let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
             let output = `Ты выбрал карточку: ${card.content}`;
-            let addData:any = {};
+            let addData: any = {};
 
-            if(this.state.player.role === PlayerRoleTypes.Leader) {
+            if (this.state.player.role === PlayerRoleTypes.Leader) {
                 addData.options = []
             }
 
@@ -179,95 +182,116 @@ state = {
 
             this.setState({
                 ...this.state,
-                messages : [...this.state.messages, output],
+                messages: [...this.state.messages, output],
                 cards: this.state.cards.filter(c => c.title !== card.title),
                 blockCards: true,
                 ...addData
             })
         }
     }
-    
-  render() {
-    console.log(this.state)
-    return ( 
-    <div className="col root">
-        <div className="container row info">
-            <div className="block col ">
-                <p>Player info:</p>
-                <hr/>
-                <div className="row">
-                Name: <b>{this.state.player.name}</b> /
+
+    render() {
+        console.log(this.state)
+        return (
+            <div className="col root">
+                <div className="container row info">
+                    <div className="block col ">
+                        <p>Player info:</p>
+                        <hr />
+                        <div className="row">
+                            Name: <b>{this.state.player.name}</b> /
                 Role:<b>{PlayerRoleTypes[this.state.player.role]}</b> /
                 points: <b>{this.state.player.points}</b> /
                 Game state: <b>{ConflictGameStates[this.state.action]}</b> /
                 </div>
-            </div>
-        </div>
-
-    
-        {ConflictGameStates.Init === this.state.action && 
-        <div className="container row block">
-            <button className="startButton" onClick={() => {
-                    this.send("start");
-                }}>
-                    Начать игру
-            </button>
-        </div>}
-    
-        <div className="container row">
-        {this.state.leadCard.title && <div id="leadCard" className="block col">
-                    <LeadCard onClick={() => {}} card={this.state.leadCard}></LeadCard>
-                </div>}
-                {this.state.player.role === PlayerRoleTypes.Leader && <div className="block col" id="options">
-                    <p>Выбери карточку:</p>
-                    <hr/>
-                    <ul>
-                        {this.state.options.map((card) => {
-                        return (<SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>)
-                        })}
-                    </ul>
-                    {
-                        this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
-                    }
-                </div>}
-
-                {this.state.player.role === PlayerRoleTypes.Second && this.state.options.length > 0 && <div className="block col" id="options">
-                    <p>Варианты от всех игроков:</p>
-                    <hr/>
-                    <ul>
-                        {this.state.options.map((card) => {
-                        return (<SecondCard card={card}/>)
-                        })}
-                    </ul>
-                    {
-                        this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
-                    }
-                </div>}
-
-                {this.state.player.role !== PlayerRoleTypes.Leader && <div id="cards" className="block col">
-                    <p>Твои карты:</p>
-                    <hr/>
-                    <ul className="row">
-                        {this.state.cards.map((card,i) => {
-                            return (<SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>)
-                        })}
-                    </ul>
-                </div>}
-
-        </div>
-
-        <div className="container row">
-                <div id="messages" className="block col">
-                    <p>Чат:</p>
-                    <hr/>
-                    <ul className="row">
-                        {this.state.messages.map((m,i) => {
-                        return (<li key={i}>{m}</li>)
-                        })}
-                    </ul>
+                    </div>
                 </div>
-        </div>
-    </div>
-    );
-  }
+
+
+                {ConflictGameStates.Init === this.state.action &&
+                    <div className="container row block">
+                        <button className="startButton" onClick={() => {
+                            this.send("start");
+                        }}>
+                            Начать игру
+            </button>
+                    </div>}
+
+                <div className="container row">
+                    {this.state.leadCard.title && <div id="leadCard" className="block col">
+                        <LeadCard onClick={() => { }} card={this.state.leadCard}></LeadCard>
+                    </div>}
+                    {this.state.player.role === PlayerRoleTypes.Leader && <div className="block col" id="options">
+                        <p>Выбери карточку:</p>
+                        <hr />
+                        {/* <ul> */}
+                        <TransitionGroup>
+                            {this.state.options.map((card, index) => {
+                                return (
+                                    <CSSTransition
+                                        key={index}
+                                        timeout={1000}
+                                        classNames="messageout"
+                                    >
+                                        <SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>
+                                    </CSSTransition>)
+                            })}
+                        </TransitionGroup>
+                        {/* </ul> */}
+                        {
+                            this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
+                        }
+                    </div>}
+
+                    {this.state.player.role === PlayerRoleTypes.Second && this.state.options.length > 0 && <div className="block col" id="options">
+                        <p>Варианты от всех игроков:</p>
+                        <hr />
+                        <TransitionGroup>
+                            {this.state.options.map((card, index) => {
+                                return (<CSSTransition
+                                    key={index}
+                                    timeout={1000}
+                                    classNames="messageout"
+                                >
+                                    <SecondCard card={card} />
+                                </CSSTransition>)
+                            })}
+                        </TransitionGroup>
+                        {
+                            this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
+                        }
+                    </div>}
+
+                    {this.state.player.role !== PlayerRoleTypes.Leader && <div id="cards" className="block col">
+                        <p>Твои карты:</p>
+                        <hr />
+                        <TransitionGroup>
+                            {this.state.cards.map((card, index) => {
+                                return (<CSSTransition
+                                    key={index}
+                                    timeout={1000}
+                                    classNames="messageout"
+                                >
+                                    <SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>
+                                </CSSTransition>)
+                            })}
+                        </TransitionGroup>
+                    </div>}
+
+                </div>
+
+                <div className="container row">
+                    <div id="messages" className="block col">
+                        <p>Чат:</p>
+                        <hr />
+                        <ul className="row">
+                            {this.state.messages.map((m, i) => {
+                                return (<li key={i}>{m}</li>)
+                            })}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }

@@ -118,6 +118,10 @@ export class ConflictGame {
                 title: player.title
             })
 
+            player.socket.emit("Action", {
+                content: `${this.state}`
+            });
+
             if (this.cardsForRound.length > 0) {
                 this.cardsForRound.forEach(obj => {
                     if (obj.player === player) {
