@@ -253,7 +253,7 @@ export default class Game extends React.Component<{},
                         <div className="block col" id="options">
                             <p>Выбери карточку:</p>
                             <hr />
-                            <TransitionGroup>
+                            <TransitionGroup className="row">
                                 {this.state.options.map((card) => {
                                     return (
                                         <CSSTransition
@@ -280,7 +280,7 @@ export default class Game extends React.Component<{},
                         <div className="block col" id="options">
                             <p>Варианты от всех игроков:</p>
                             <hr />
-                            <TransitionGroup>
+                            <TransitionGroup className="row">
                                 {this.state.options.map((card) => {
                                     return (<CSSTransition
                                         key={card.id}
