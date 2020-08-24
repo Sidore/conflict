@@ -75,7 +75,8 @@ hr {
 }
 
 .row {
-    flex-direction: row; 
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .col {

@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import * as chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
 import { IDeck } from "./Models/Deck";
-import {CardTypes, CardContentTypes, Card } from "./Models/Card"
+import { CardTypes, CardContentTypes, Card } from "./Models/Card"
 
 export enum ConflictGameStates {
     Init = 0,
@@ -52,25 +52,27 @@ export class ConflictGame {
     private startPlayersLimit: number;
     private io: any;
     private deck: Card[];
-    private cardsForRound: {player: PlayerType, card: Card}[];
+    private cardsForRound: { player: PlayerType, card: Card }[];
     private preselectedDeck: IDeck;
+    private lastLeadCard: Card;
 
-    constructor({playersLimit, io, deck}) {
+    constructor({ playersLimit, io, deck }) {
         this.state = ConflictGameStates.Init;
         this.startPlayersLimit = playersLimit;
         this.players = [];
         this.io = io;
         this.cardsForRound = [];
         this.preselectedDeck = deck;
+        this.lastLeadCard = null;
     }
 
     broadcast(message: MessageType, role?: PlayerRoleTypes) {
-        console.log(`${chalk.black.bgGreen(" Broadcasted message ")} to group ${chalk.green(role)} message '${chalk.green(message.content)}'`);
+        console.log(`${chalk.black.bgGreen(" Broadcasted message ")} to group ${role ? chalk.green(role) : "all"} message '${chalk.green(message.content)}'`);
         this.players.forEach((player) => {
-            if ((role !== undefined && player.role === role) || role === undefined){
+            if ((role !== undefined && player.role === role) || role === undefined) {
                 player.socket.emit(MessageTypes[message.type], message.content)
-                if(!role) {
-                    console.log("message to",player.title, message.type, MessageTypes[message.type])
+                if (!role) {
+                    // console.log("message to", player.title, message.type, MessageTypes[message.type])
                 }
             }
         });
@@ -84,10 +86,10 @@ export class ConflictGame {
         return this.players.map(callBack);
     }
 
-    addPlayer({title, socket}): PlayerType {
+    addPlayer({ title, socket }): PlayerType {
         const player = {
-            id: uuidv4(), 
-            title, 
+            id: uuidv4(),
+            title,
             socket,
             role: PlayerRoleTypes.Second,
             secondCards: 0,
@@ -100,12 +102,13 @@ export class ConflictGame {
         return player;
     }
 
-    updatePlayer({reconnectId, socket}) {
+    updatePlayer({ reconnectId, socket }) {
         const player = this.players.find((player) => {
             return player.id === reconnectId;
         })
 
         if (player) {
+            console.log(`player ${player.title} reconnected`, ConflictGameStates[this.state])
             player.socket = socket
             this.broadcast({
                 type: MessageTypes.Message,
@@ -118,18 +121,19 @@ export class ConflictGame {
                 title: player.title
             })
 
-            player.socket.emit("Action", {
-                content: `${this.state}`
-            });
+            player.socket.emit("Action", `${this.state}`);
 
-            if (this.cardsForRound.length > 0) {
-                this.cardsForRound.forEach(obj => {
-                    if (obj.player === player) {
-                        player.socket.emit(MessageTypes[MessageTypes.Card], obj.card)
-                    }
-                })
+            this.deck && this.deck.forEach((card) => {
+                if (card.player && card.player == player.id) {
+                    player.socket.emit("Card", card);
+                }
+            })
+
+            if (this.state === ConflictGameStates.CardsGive) {
+                player.socket.emit("Message", this.lastLeadCard);
+            } else if (this.state === ConflictGameStates.CardsWaiting || this.state === ConflictGameStates.Desicion) {
+                player.socket.emit("Message", this.cardsForRound.map(obj => obj.card));
             }
-            
 
             return player;
         }
@@ -148,7 +152,7 @@ export class ConflictGame {
             name: player.title,
             role: player.role,
             id,
-        },role,PlayerRoleTypes[role],  PlayerRoleTypes[player.role], PlayerRoleTypes[role])
+        }, role, PlayerRoleTypes[role], PlayerRoleTypes[player.role], PlayerRoleTypes[role])
         if (player) {
             this.playerChange(player, role);
         } else {
@@ -172,7 +176,7 @@ export class ConflictGame {
             }
         }
 
-        
+
     }
 
     gameStateChange(state?: ConflictGameStates) {
@@ -188,76 +192,85 @@ export class ConflictGame {
         })
     }
 
-    userAction(player: PlayerType, action: {type: PlayerMessageTypes, content?: string | any}) {
-        switch(this.state) {
+    userAction(player: PlayerType, action: { type: PlayerMessageTypes, content?: string | any }) {
+        switch (this.state) {
             case ConflictGameStates.WaitingForPlayers: {
                 const limitPassed = this.players.length >= this.startPlayersLimit
                 if (action.type === PlayerMessageTypes.Enter) {
                     if (limitPassed) {
-                        this.broadcast({type: MessageTypes.Message, content: `В комнате достаточно народу - можем начинать!`});
+                        this.broadcast({ type: MessageTypes.Message, content: `В комнате достаточно народу - можем начинать!` });
                     } else {
-                        this.broadcast({type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}`});
+                        this.broadcast({ type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}` });
                     }
-                } else if(action.type === PlayerMessageTypes.Start){
+                } else if (action.type === PlayerMessageTypes.Start) {
                     if (this.players.length >= this.startPlayersLimit) {
-                        this.broadcast({type: MessageTypes.Action, content: `start`});
+                        this.broadcast({ type: MessageTypes.Action, content: `start` });
                         this.startGame();
                     } else {
-                        this.broadcast({type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}`});
+                        this.broadcast({ type: MessageTypes.Message, content: `Нужно подождать еще игроков, как минимум ${4 - this.players.length}` });
                     }
                 }
             }
             case ConflictGameStates.Start: {
-                    break;
-                }
+                break;
+            }
             case ConflictGameStates.Round: break;
             case ConflictGameStates.CardsGive: break;
             case ConflictGameStates.CardsWaiting: {
-                console.log("<<<<<<<<<<lol", {name: player.title, role: player.role}, action)
+                console.log("<<<<<<<<<<lol", { name: player.title, role: player.role }, action)
                 if (player.role === PlayerRoleTypes.Second) {
 
-                    const vote: Card = action.content as Card;
+                    if (action && action.content) {
+                        const vote: Card = action.content as Card;
 
-                    this.cardsForRound.push({
-                        card: vote,
-                        player
-                    })
+                        this.deck.find(card => card.id == vote.id).player = null;
 
-                    player.secondCards--;
+                        this.cardsForRound.push({
+                            card: vote,
+                            player
+                        })
+
+                        player.secondCards--;
+                    } else {
+                        console.log("wrong arguments ConflictGameStates.CardsWaiting")
+                    }
+
                 }
 
                 if (this.cardsForRound.length === this.players.length - 1) {
-                    this.broadcast({ content : this.cardsForRound.map(o => o.card), type: MessageTypes.Message})
+                    this.broadcast({ content: this.cardsForRound.map(o => o.card), type: MessageTypes.Message })
                     this.gameStateChange(ConflictGameStates.Desicion);
                 }
                 break;
             }
-            case ConflictGameStates.Desicion: 
-            if (player.role === PlayerRoleTypes.Leader) {
-                const vote: Card = action.content as Card;
-                const res = this.cardsForRound.find((c) => {
-                    return c.card.title === vote.title;
-                })
+            case ConflictGameStates.Desicion:
+                if (player.role === PlayerRoleTypes.Leader) {
+                    if (action && action.content) {
+                        const vote: Card = action.content as Card;
+                        const res = this.cardsForRound.find((c) => {
+                            return c.card.id === vote.id;
+                        })
 
-                if(!res) {
-                    console.log(vote, this.cardsForRound)
+                        if (!res) {
+                            console.log(vote, this.cardsForRound)
+                        }
+
+                        this.gameStateChange(ConflictGameStates.Round);
+                        this.increasePoints(res);
+                        this.newRound();
+                    }
+
                 }
-
-                this.gameStateChange(ConflictGameStates.Round);
-                this.increasePoints(res);
-                this.newRound();
-
-            }
-            break;
+                break;
             case ConflictGameStates.Idle: break;
             default: ;
         }
     }
-    
+
     async startGame() {
         this.gameStateChange(ConflictGameStates.Start);
         console.log("Game started");
-        this.players.sort((a,b) => {
+        this.players.sort((a, b) => {
             return Math.random() > 0.5 ? 1 : -1;
         });
 
@@ -284,6 +297,7 @@ export class ConflictGame {
         this.players.forEach(player => {
             while (player.secondCards < 5) {
                 let card = this.getSecondCard();
+                card.player = player.id;
                 player.socket.emit(MessageTypes[MessageTypes.Card], card);
                 player.secondCards++;
             }
@@ -307,6 +321,7 @@ export class ConflictGame {
             console.log("Something went wrong 2")
         }
 
+        card.id = uuidv4();
         card.given = true;
         return card;
     }
@@ -320,22 +335,12 @@ export class ConflictGame {
             console.log("Something went wrong 1")
         }
         const leadCard = this.getLeadCard();
-        const leadCardStr = leadCard;
+        this.lastLeadCard = leadCard;
 
         const messageToLead = {
-            content: leadCardStr,
+            content: leadCard,
             type: MessageTypes.Message
         }
-
-        const messageToSecond = {
-            content: `Choose your card for ${leadCardStr}`,
-            type: MessageTypes.Message
-        }
-
-        // console.log(this.players.map((p) => ({
-        //     name: p.title,
-        //     role: p.role
-        // })))
 
         this.broadcast(messageToLead, PlayerRoleTypes.Leader);
         this.broadcast(messageToLead, PlayerRoleTypes.Second);
@@ -352,7 +357,7 @@ export class ConflictGame {
             return c;
         })]
 
-        
+
 
         // const memLinks = [
         //     "http://risovach.ru/upload/2016/10/generator/mister-dudec_126443897_orig_.jpg",
@@ -447,19 +452,19 @@ export class ConflictGame {
         //             })
         //         }
 
-        deck.sort((a,b) => {
+        deck.sort((a, b) => {
             return Math.random() > 0.5 ? 1 : -1;
         })
         this.deck = deck;
     }
 
-    increasePoints({player, card}) {
+    increasePoints({ player, card }) {
         player.points++;
 
         player.socket.emit("Sync", {
             points: player.points
         })
-        this.broadcast({type: MessageTypes.Message, content: `Выиграла карточка игрока ${player.title}! С карточкой ${card.content}`});
+        this.broadcast({ type: MessageTypes.Message, content: `Выиграла карточка игрока ${player.title}! С карточкой ${card.content}` });
     }
 
 

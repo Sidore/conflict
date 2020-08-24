@@ -131,7 +131,7 @@ io.on("connection", (socket) => {
 
     socket.on("message", (message) => {
         try {
-            console.log("*******",GameArray, game)
+            console.log("******* message")
             game.userAction(player,{
                 type: message.type,
                 content: message.content

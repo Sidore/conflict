@@ -1,5 +1,7 @@
 
 export interface Card {
+    player?: string,
+    id?: string,
     type: CardTypes,
     title: string,
     content: string,

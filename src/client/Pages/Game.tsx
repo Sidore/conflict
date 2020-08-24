@@ -31,7 +31,7 @@ export default class Game extends React.Component<{},
         message: "",
         type: "",
         cards: [],
-        leadCard: { title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard },
+        leadCard: {id: "", title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard },
         action: 0,
         options: [],
         cameras: [],
@@ -79,7 +79,7 @@ export default class Game extends React.Component<{},
                             output = `Тебе нужно подкинуть шутку к "${card.content}"`
                         }
                     }
-                } else if (this.state.action === ConflictGameStates.CardsWaiting) {
+                } else if (this.state.action === ConflictGameStates.CardsWaiting || this.state.action === ConflictGameStates.Desicion) {
                     if (this.state.player.role === PlayerRoleTypes.Leader) {
                         output = "Выбери самую подходящею карточку"
                     } else {
@@ -136,7 +136,7 @@ export default class Game extends React.Component<{},
 
         if (localStorage.getItem(room)) {
             socket.emit("Enter", { name: user, roomId: room, reconnectId: localStorage.getItem(room) });
-            
+
         } else {
             socket.emit("Enter", { name: user, roomId: room });
         }
@@ -224,12 +224,11 @@ export default class Game extends React.Component<{},
                     {this.state.player.role === PlayerRoleTypes.Leader && <div className="block col" id="options">
                         <p>Выбери карточку:</p>
                         <hr />
-                        {/* <ul> */}
                         <TransitionGroup>
-                            {this.state.options.map((card, index) => {
+                            {this.state.options.map((card) => {
                                 return (
                                     <CSSTransition
-                                        key={index}
+                                        key={card.id}
                                         timeout={1000}
                                         classNames="messageout"
                                     >
@@ -237,7 +236,6 @@ export default class Game extends React.Component<{},
                                     </CSSTransition>)
                             })}
                         </TransitionGroup>
-                        {/* </ul> */}
                         {
                             this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
                         }
@@ -247,9 +245,9 @@ export default class Game extends React.Component<{},
                         <p>Варианты от всех игроков:</p>
                         <hr />
                         <TransitionGroup>
-                            {this.state.options.map((card, index) => {
+                            {this.state.options.map((card) => {
                                 return (<CSSTransition
-                                    key={index}
+                                    key={card.id}
                                     timeout={1000}
                                     classNames="messageout"
                                 >
@@ -265,10 +263,10 @@ export default class Game extends React.Component<{},
                     {this.state.player.role !== PlayerRoleTypes.Leader && <div id="cards" className="block col">
                         <p>Твои карты:</p>
                         <hr />
-                        <TransitionGroup>
-                            {this.state.cards.map((card, index) => {
+                        <TransitionGroup className="row">
+                            {this.state.cards.map((card) => {
                                 return (<CSSTransition
-                                    key={index}
+                                    key={card.id}
                                     timeout={1000}
                                     classNames="messageout"
                                 >
