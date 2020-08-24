@@ -318,7 +318,7 @@ export class ConflictGame {
         })
 
         if (!card) {
-            console.log("Something went wrong 2")
+            console.log("We ran out of cards in the deck")
         }
 
         card.id = uuidv4();

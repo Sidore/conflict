@@ -69,7 +69,7 @@ hr {
 
 .container {
     display: flex;
-    flex: 1;
+    // flex: 1;
     flex-basis: auto
     
 }
@@ -197,6 +197,7 @@ ul {
 .headliner {
     justify-content: center;
     font-size: 36px;
+    align-items: center;
 }
 
 .actionLink {
@@ -217,24 +218,63 @@ ul {
 }
 
 .roomsListItem {
-    margin-bottom: 40px;
-    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+
+    & span:first-of-type {
+        padding: 5px;
+        font-weight: bold;
+        font-size: 24px;
+        color: white;
+    }
+
+    & span:last-of-type {
+        padding: 5px;
+        // font-weight: bold;
+        font-style: italic;
+        font-size: 24px;
+        color: white;
+    }
+
+    & .actionLink {
+        margin-left: 20px;
+        font-size: 24px;
+        text-decoration: none;
+    }
+}
+
+.lastCreatedRoom {
+    display: flex;
+    font-size: 24px;
+}
+
+.deckManagement {
+    & .createButton {
+        margin: 10px 0;
+        text-decoration: none;
+        font-size: 24px;
+    }
 }
 
 .messageout-enter {
     // position: absolute;
     // top: 0;
-    left: calc(13% + 5px);
-    right: calc(13% + 5px);
+    // left: calc(13% + 5px);
+    // right: calc(13% + 5px);
     opacity: 0.01;
     transform: translateY(0%) scale(0.01);
+    
   }
   
   /* ending ENTER animation */
   .messageout-enter-active {
     opacity: 1;
     transform: translateY(0%) scale(1);
-    transition: all 1000ms ease-in-out;
+    transition: all .5 ease-in-out;
+    // height: 0;
+    // width: 0;
   }
   
   /* starting EXIT animation */
@@ -246,8 +286,29 @@ ul {
   /* ending EXIT animation */
   .messageout-exit-active {
     opacity: 0;
-    transform: scale(4);
-    transition: all 1000ms ease-in-out;
+    transform: scale(1.5);
+    transition: all .5 ease-in-out;
+    // height: 0;
+    // width: 0;
+  }
+
+
+  .alert-enter {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  .alert-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 300ms, transform 300ms;
+  }
+  .alert-exit {
+    opacity: 1;
+  }
+  .alert-exit-active {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 300ms, transform 300ms;
   }
 
 @media (max-width: 750px) { 

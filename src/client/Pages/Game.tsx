@@ -31,7 +31,7 @@ export default class Game extends React.Component<{},
         message: "",
         type: "",
         cards: [],
-        leadCard: {id: "", title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard },
+        leadCard: { id: "", title: "", content: "", contentType: CardContentTypes.Text, type: CardTypes.LeadCard },
         action: 0,
         options: [],
         cameras: [],
@@ -44,14 +44,8 @@ export default class Game extends React.Component<{},
 
     componentDidMount() {
         const room = location.pathname.split("/")[1];
-        let user = prompt("Введи имя") || `player-${Math.round(Math.random() * 1000)}`;
-        this.setState({
-            ...this.state,
-            player: {
-                ...this.state.player,
-                name: user
-            }
-        })
+        const user = prompt("Введи имя") || `player-${Math.round(Math.random() * 1000)}`;
+
         socket.on("Message", (data) => {
 
             let output = data;
@@ -140,6 +134,14 @@ export default class Game extends React.Component<{},
         } else {
             socket.emit("Enter", { name: user, roomId: room });
         }
+
+        this.setState({
+            ...this.state,
+            player: {
+                ...this.state.player,
+                name: user
+            }
+        })
     }
 
     send(t?) {
@@ -207,74 +209,116 @@ export default class Game extends React.Component<{},
                     </div>
                 </div>
 
-
-                {ConflictGameStates.Init === this.state.action &&
+                <CSSTransition
+                    in={ConflictGameStates.Init === this.state.action}
+                    timeout={300}
+                    classNames="alert"
+                    unmountOnExit
+                >
                     <div className="container row block">
                         <button className="startButton" onClick={() => {
                             this.send("start");
                         }}>
                             Начать игру
-            </button>
-                    </div>}
+                        </button>
+                    </div>
+                </CSSTransition>
+                {/* {ConflictGameStates.Init === this.state.action &&
+                    } */}
 
                 <div className="container row">
-                    {this.state.leadCard.title && <div id="leadCard" className="block col">
-                        <LeadCard onClick={() => { }} card={this.state.leadCard}></LeadCard>
-                    </div>}
-                    {this.state.player.role === PlayerRoleTypes.Leader && <div className="block col" id="options">
-                        <p>Выбери карточку:</p>
-                        <hr />
-                        <TransitionGroup>
-                            {this.state.options.map((card) => {
-                                return (
-                                    <CSSTransition
+                    <CSSTransition
+                        in={!!this.state.leadCard.title}
+                        timeout={300}
+                        classNames="alert"
+                        unmountOnExit
+                    >
+                        <div id="leadCard" className="block col">
+                            <CSSTransition
+                                key={this.state.leadCard.id}
+                                timeout={1000}
+                                classNames="messageout"
+                            >
+                                <LeadCard onClick={() => { }} card={this.state.leadCard}></LeadCard>
+                            </CSSTransition>
+                        </div>
+                    </CSSTransition>
+
+                    <CSSTransition
+                        in={this.state.player.role === PlayerRoleTypes.Leader}
+                        timeout={300}
+                        classNames="alert"
+                        unmountOnExit
+                    >
+                        <div className="block col" id="options">
+                            <p>Выбери карточку:</p>
+                            <hr />
+                            <TransitionGroup>
+                                {this.state.options.map((card) => {
+                                    return (
+                                        <CSSTransition
+                                            key={card.id}
+                                            timeout={1000}
+                                            classNames="messageout"
+                                        >
+                                            <SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>
+                                        </CSSTransition>)
+                                })}
+                            </TransitionGroup>
+                            {
+                                this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
+                            }
+                        </div>
+                    </CSSTransition>
+
+                    <CSSTransition
+                        in={this.state.player.role === PlayerRoleTypes.Second && this.state.options.length > 0}
+                        timeout={300}
+                        classNames="alert"
+                        unmountOnExit
+                    >
+                        <div className="block col" id="options">
+                            <p>Варианты от всех игроков:</p>
+                            <hr />
+                            <TransitionGroup>
+                                {this.state.options.map((card) => {
+                                    return (<CSSTransition
+                                        key={card.id}
+                                        timeout={1000}
+                                        classNames="messageout"
+                                    >
+                                        <SecondCard card={card} />
+                                    </CSSTransition>)
+                                })}
+                            </TransitionGroup>
+                            {
+                                this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
+                            }
+                        </div>
+                    </CSSTransition>
+
+                    <CSSTransition
+                        in={this.state.player.role !== PlayerRoleTypes.Leader}
+                        timeout={300}
+                        classNames="alert"
+                        unmountOnExit
+                    >
+                        <div id="cards" className="block col">
+                            <p>Твои карты:</p>
+                            <hr />
+                            <TransitionGroup className="row">
+                                {this.state.cards.map((card) => {
+                                    return (<CSSTransition
                                         key={card.id}
                                         timeout={1000}
                                         classNames="messageout"
                                     >
                                         <SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>
                                     </CSSTransition>)
-                            })}
-                        </TransitionGroup>
-                        {
-                            this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
-                        }
-                    </div>}
-
-                    {this.state.player.role === PlayerRoleTypes.Second && this.state.options.length > 0 && <div className="block col" id="options">
-                        <p>Варианты от всех игроков:</p>
-                        <hr />
-                        <TransitionGroup>
-                            {this.state.options.map((card) => {
-                                return (<CSSTransition
-                                    key={card.id}
-                                    timeout={1000}
-                                    classNames="messageout"
-                                >
-                                    <SecondCard card={card} />
-                                </CSSTransition>)
-                            })}
-                        </TransitionGroup>
-                        {
-                            this.state.options.length === 0 && <p>Ждем пока остальные игроки предложат карточки...</p>
-                        }
-                    </div>}
-
-                    {this.state.player.role !== PlayerRoleTypes.Leader && <div id="cards" className="block col">
-                        <p>Твои карты:</p>
-                        <hr />
-                        <TransitionGroup className="row">
-                            {this.state.cards.map((card) => {
-                                return (<CSSTransition
-                                    key={card.id}
-                                    timeout={1000}
-                                    classNames="messageout"
-                                >
-                                    <SecondCard card={card} onClick={() => this.sendCard(card)}></SecondCard>
-                                </CSSTransition>)
-                            })}
-                        </TransitionGroup>
-                    </div>}
+                                })}
+                            </TransitionGroup>
+                        </div>
+                    </CSSTransition>
 
                 </div>
 

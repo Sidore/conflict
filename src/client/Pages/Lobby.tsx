@@ -70,47 +70,56 @@ export default class Lobby extends React.Component<{}, {
 
     render() {
         console.log(this.state)
-        return <div className="container">
-            <p className="container block headliner">Лобби</p>
-            <ul className="container block col">
-                {
-                    this.state.rooms.reverse().map(room => {
-                        return (
-                            <li className="roomsListItem" key={room}>
-                                Игровая комната <b>{room.room}</b> и колода <i>{room.deck}</i> - <Link className="actionLink" to={`/${room.room}`}>Зайти!</Link>
-                            </li>
-                        )
-                    })
-                }
-            </ul>
-            <div className="container block col">
-                {this.state.lastCreated && <p style={{ display: "flex", marginBottom: "20px" }}> {this.state.lastCreated}</p>}
-
-                <Link to="/newDeck">Создать новую колоду</Link>
-                {
-                    this.state.currentDeck._id && <Link to={`/deck/${this.state.currentDeck._id}`}>Редактировать выбранную колоду</Link>
-                }
-
-                <button className="createButton" onClick={() => this.createRoom()}>Создать новую комнату</button>
-                <div>
-                    Выбранная колода : {this.state.currentDeck.title}
-
-                    <select onChange={(e) => {
-                        this.setState({
-                            ...this.state,
-                            currentDeck: this.state.decks.find(d => d.title === e.target.value)
-                        })
-                    }}>
-                        {this.state.decks.map((d) => {
-                            return (
-                                <option key={d.title} value={d.title}>
-                                    {d.title}
-                                </option>
+        return <div className="container col">
+            <p className="container headliner">Лобби</p>
+            <div className="container row">
+                <div className="container block col">
+                    {
+                        this.state.rooms.reverse().map(room => {
+                            return (<>
+                                <div className="roomsListItem" key={room}>
+                                    <p>Игровая комната <span> {room.room} </span></p> <p>и колода <span>{room.deck}</span> </p><Link className="actionLink" to={`/${room.room}`}>Зайти!</Link>
+                                    
+                                </div>
+                                <hr/>
+                                </>
                             )
-                        })}
-                    </select>
+                        })
+                    }
+                </div>
+
+                <div className="container block col deckManagement">
+                    {this.state.lastCreated && <p className="lastCreatedRoom">Последняя созданная: {this.state.lastCreated}</p>}
+
+                    <Link className="createButton" to="/newDeck">Создать новую колоду</Link>
+                    {
+                        this.state.currentDeck._id && <Link className="createButton" to={`/deck/${this.state.currentDeck._id}`}>Редактировать выбранную колоду</Link>
+                    }
+
+                    <button className="createButton" onClick={() => this.createRoom()}>Создать новую комнату</button>
+                    <div className="col">
+                        Выбранная колода : {this.state.currentDeck.title}
+                        <hr/>
+
+                        <select onChange={(e) => {
+                            this.setState({
+                                ...this.state,
+                                currentDeck: this.state.decks.find(d => d.title === e.target.value)
+                            })
+                        }}>
+                            {this.state.decks.map((d) => {
+                                return (
+                                    <option key={d.title} value={d.title}>
+                                        {d.title}
+                                    </option>
+                                )
+                            })}
+                        </select>
+                    </div>
                 </div>
             </div>
+
+
         </div>
     }
 }
